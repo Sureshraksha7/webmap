@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebMap - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .graphic-bg {
+            background-image: url('assets/bg.png');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .graphic-bg::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        .form-input:focus { box-shadow: 0 0 0 2px #3b82f6; outline: none; }
+    </style>
+</head>
+<body class="bg-white text-gray-900 antialiased">
+
+<div class="flex min-h-screen">
+    <!-- Left Column: Form -->
+    <div class="w-full md:w-1/2 flex flex-col justify-center items-center p-8 sm:p-12 fade-in relative">
+        <div class="w-full max-w-sm">
+
+            <!-- Login View -->
+            <div id="login-view">
+                <h2 class="text-4xl font-bold mb-3 text-gray-900">Welcome Back!</h2>
+                <p class="text-gray-600 mb-8">Please enter log in details below</p>
+                
+                <form id="login-form">
+                    <div class="mb-4">
+                        <label for="login-email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" id="login-email" name="email" required
+                               class="form-input w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:border-blue-500 transition-shadow duration-200"
+                               placeholder="you@example.com">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label for="login-password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <input type="password" id="login-password" name="password" required
+                               class="form-input w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:border-blue-500 transition-shadow duration-200"
+                               placeholder="••••••••">
+                    </div>
+
+                    <div id="login-error" class="text-red-600 text-sm mb-4" aria-live="polite"></div>
+
+                    <button type="submit"
+                            class="w-full bg-gray-900 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-opacity-50 transition-colors duration-300">
+                        Sign In
+                    </button>
+                </form>
+
+                <p class="text-sm text-gray-600 text-center mt-8">
+                    Don't have an account? 
+                    <a href="#" id="show-register" class="font-medium text-blue-600 hover:text-blue-500">Sign Up</a>
+                </p>
+            </div>
+
+            <!-- Register View -->
+            <div id="register-view" class="hidden">
+                <h2 class="text-4xl font-bold mb-3 text-gray-900">Create Account</h2>
+                <p class="text-gray-600 mb-8">Let's get you started!</p>
+                
+                <form id="register-form">
+                    <div class="mb-4">
+                        <label for="register-name" class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                        <input type="text" id="register-name" name="name" required
+                               class="form-input w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:border-blue-500 transition-shadow duration-200"
+                               placeholder="Your Name">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="register-email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" id="register-email" name="email" required
+                               class="form-input w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:border-blue-500 transition-shadow duration-200"
+                               placeholder="you@example.com">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="register-phone" class="block text-sm font-medium text-gray-700 mb-2">Phone (Optional)</label>
+                        <input type="tel" id="register-phone" name="phone"
+                               class="form-input w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:border-blue-500 transition-shadow duration-200"
+                               placeholder="+1 (555) 123-4567">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label for="register-password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <input type="password" id="register-password" name="password" required
+                               class="form-input w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:border-blue-500 transition-shadow duration-200"
+                               placeholder="••••••••">
+                    </div>
+
+                    <div id="register-error" class="text-red-600 text-sm mb-4" aria-live="polite"></div>
+                    <div id="register-success" class="text-green-600 text-sm mb-4" aria-live="polite"></div>
+
+                    <button type="submit"
+                            class="w-full bg-gray-900 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-opacity-50 transition-colors duration-300">
+                        Create Account
+                    </button>
+                </form>
+
+                <p class="text-sm text-gray-600 text-center mt-8">
+                    Already have an account? 
+                    <a href="#" id="show-login" class="font-medium text-blue-600 hover:text-blue-500">Sign In</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Graphic -->
+    <div class="hidden md:flex w-1/2 graphic-bg justify-center items-end p-12 pb-24 text-white relative">
+        <div class="z-20 text-center">
+            <h1 class="text-4xl font-bold leading-tight mb-4">WebMap</h1>
+            <p class="text-lg text-gray-300 max-w-md mx-auto">
+                generate, visualize and refine your perfect website hierarchy in minutes.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const API_URL = 'https://structure-backend-d6a4.onrender.com';
+    const loginView = document.getElementById('login-view');
+    const registerView = document.getElementById('register-view');
+    const showRegisterBtn = document.getElementById('show-register');
+    const showLoginBtn = document.getElementById('show-login');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const loginErrorEl = document.getElementById('login-error');
+    const registerErrorEl = document.getElementById('register-error');
+    const registerSuccessEl = document.getElementById('register-success');
+
+    // Redirect to dashboard if token exists
+    const token = localStorage.getItem('access_token');
+    if(token) {
+        window.location.href = './dashboard.html';
+    }
+
+    // Toggle Views
+    showRegisterBtn.addEventListener('click', e => {
+        e.preventDefault();
+        loginView.classList.add('hidden');
+        registerView.classList.remove('hidden');
+        clearMessages();
+    });
+    showLoginBtn.addEventListener('click', e => {
+        e.preventDefault();
+        registerView.classList.add('hidden');
+        loginView.classList.remove('hidden');
+        clearMessages();
+    });
+
+    function clearMessages() {
+        loginErrorEl.textContent = '';
+        registerErrorEl.textContent = '';
+        registerSuccessEl.textContent = '';
+    }
+
+    // LOGIN
+    loginForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        clearMessages();
+        const data = Object.fromEntries(new FormData(loginForm).entries());
+        try {
+            const res = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || 'Login failed');
+            }
+
+            const result = await res.json();
+            localStorage.setItem('access_token', result.access_token);
+            window.location.href = './dashboard.html';
+        } catch (err) {
+            loginErrorEl.textContent = err.message;
+        }
+    });
+
+    // REGISTER
+    registerForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        clearMessages();
+        const data = Object.fromEntries(new FormData(registerForm).entries());
+        try {
+            const res = await fetch(`${API_URL}/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || 'Registration failed');
+            }
+
+            registerSuccessEl.textContent = 'Registration successful! Redirecting to login...';
+            registerForm.reset();
+            setTimeout(() => {
+                registerView.classList.add('hidden');
+                loginView.classList.remove('hidden');
+            }, 2000);
+        } catch (err) {
+            registerErrorEl.textContent = err.message;
+        }
+    });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebMap - Project Structure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #F8F9FA; 
+            color: #334155; 
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Style for the 'contenteditable' elements */
+        [contenteditable="true"] {
+            outline: none;
+            cursor: text;
+        }
+        [contenteditable="true"]:focus {
+            outline: 1px dashed #63b3ed;
+            background-color: #e0f2fe; 
+            border-radius: 4px;
+            color: #1e29b;
+        }
+        [contenteditable="false"] {
+            cursor: default;
+        }
+
+        /* --- HEADER --- */
+        .top-bar {
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* --- Bottom Bar --- */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between; 
+            align-items: center;
+            gap: 1rem;
+            z-index: 100;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        /* Button Styles */
+        .btn-secondary {
+             background-color: #e2e8f0;
+             color: #334155;
+             padding: 8px 14px;
+             border-radius: 8px;
+             font-weight: 500;
+             cursor: pointer;
+             transition: background-color 0.2s;
+             border: none;
+             text-decoration: none; 
+             display: inline-flex;
+             align-items: center;
+             gap: 8px;
+        }
+        .btn-secondary:hover {
+             background-color: #cbd5e1;
+        }
+        .btn-secondary:disabled {
+            background-color: #e2e8f0;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+        
+        /* Action Bar Styles */
+        .action-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem; /* 4px */
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .tree-content:hover .action-bar {
+            opacity: 1;
+        }
+        
+        .action-btn {
+            color: #94a3b8; /* Muted gray */
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 6px;
+            font-size: 0.9em;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .action-btn:hover {
+            color: #334155;
+            background-color: #e2e8f0;
+        }
+        .action-btn.add-btn:hover {
+            color: #2563eb; /* Blue */
+            background-color: #dbeafe;
+        }
+        .action-btn.delete-btn:hover {
+            color: #ef4444; /* Red */
+            background-color: #fee2e2;
+        }
+        .action-btn.save-edit-btn:hover {
+            color: #10b981; /* Green */
+            background-color: #d1fae5;
+        }
+        .action-btn.cancel-edit-btn:hover {
+            color: #f59e0b; /* Amber */
+            background-color: #fef3c7;
+        }
+        .hidden {
+            display: none;
+        }
+        .editing .action-bar {
+            opacity: 1;
+        }
+
+        /* --- CONTENT STRUCTURE (MAIN LAYOUT) --- */
+        .main-container {
+            flex-grow: 1;
+            padding: 2rem 1rem;
+            padding-bottom: 100px; 
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* --- DUAL PANEL LAYOUT --- */
+        .content-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 80rem; 
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 1rem;
+            
+            /* --- CRITICAL: Set content to stretch/fill vertical space --- */
+            align-items: stretch; 
+        }
+
+        .tree-view-column {
+            flex-shrink: 0;
+            width: 65%; 
+            max-width: 56rem;
+            min-width: 400px; 
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-column {
+            flex-grow: 1;
+            width: 35%; 
+            min-width: 300px; 
+            display: flex;
+            flex-direction: column;
+        }
+        /* --- END DUAL PANEL LAYOUT --- */
+        
+        .company-node {
+            background-color: #3b82f6; 
+            color: white;
+            padding: 0.5rem 2rem; 
+            border-radius: 6px; 
+            font-weight: 600;
+            font-size: 1.5rem; 
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); 
+            width: fit-content;
+            margin: 0 auto 1rem auto; 
+        }
+        
+        /* --- CRITICAL: Tree View Scrolling --- */
+        #flowchart-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+            padding: 1rem; 
+            border: 1px solid #e2e8f0;
+            
+            /* Calculated Height: 100vh - (Header: 58 + Footer: 58 + Main Top/Bottom Padding: 64 + Company Node Area: 66 + Content Wrapper Margin: 16) = approx 262px. Using 265px for safety. */
+            height: calc(100vh - 265px);
+            overflow-y: auto; 
+        }
+        
+        /* --- CHAT STYLES --- */
+        .chat-box {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            
+            /* CRITICAL: Match Tree View Height */
+            height: calc(100vh - 265px); 
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+            padding: 0 0.5rem;
+        }
+
+        .chat-message {
+            margin-bottom: 0.75rem;
+        }
+        .user-message {
+            text-align: right;
+            padding: 6px 10px;
+            background-color: #dbeafe; 
+            border-radius: 12px 12px 0 12px;
+            display: inline-block;
+            max-width: 85%;
+            font-size: 0.9rem;
+            color: #1e3a8a;
+        }
+        .ai-message {
+            text-align: left;
+            padding: 8px 12px;
+            background-color: #f1f5f9; 
+            border-radius: 12px 12px 12px 0;
+            display: inline-block;
+            max-width: 85%;
+            font-size: 0.9rem;
+            color: #334155;
+        }
+
+        .chat-input-container {
+            flex-shrink: 0; /* Prevents input from shrinking */
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chat-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            resize: none;
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        .regenerate-btn {
+            background-color: #3b82f6;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            flex-shrink: 0;
+        }
+        .regenerate-btn:hover {
+            background-color: #2563eb;
+        }
+        .regenerate-btn:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+        /* --- END CHAT STYLES --- */
+
+        /* --- Tree Structure Styles (Image Look) --- */
+        .tree-node {
+            position: relative;
+            padding-left: 30px; 
+            margin-top: 1px; 
+        }
+        .tree-node:first-child {
+            margin-top: 0;
+        }
+        
+        .menu-item {
+            padding-bottom: 0px; 
+            border-bottom: none; 
+            margin-bottom: 0px; 
+            padding-bottom: 0;
+        }
+        .menu-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .tree-children {
+            position: relative;
+            padding-top: 1px; 
+            border-left: 1px solid #e2e8f0; 
+            margin-left: 14px; 
+        }
+        .tree-node:last-child > .tree-children {
+             border-left-color: transparent;
+        }
+
+        .tree-line-leaf {
+            position: absolute;
+            left: 14px; 
+            top: 7px; 
+            width: 16px;
+            height: 1px;
+            background-color: transparent;
+            border-top: 1px solid #e2e8f0; 
+        }
+        
+        .tree-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 3px 0; 
+        }
+        
+        .section-item {
+             border: none;
+             box-shadow: none;
+             border-radius: 0;
+             background-color: transparent; 
+             padding-top: 0px; 
+             padding-bottom: 0px; 
+             margin-right: -1.5rem; 
+             padding-right: 1.5rem;
+        }
+        .section-item .tree-line-leaf {
+            top: 5px; 
+        }
+        
+        .subsection-item {
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+            padding-left: 30px;
+        }
+        .subsection-item .tree-line-leaf {
+            top: 4px; 
+        }
+
+        .item-text {
+            font-weight: 500;
+        }
+        
+        /* --- FONT SIZES (Max Compression) --- */
+        .menu-item .item-text {
+            font-size: 0.85rem; 
+            font-weight: 600; 
+            color: #1e293b; 
+        }
+        .section-item .item-text {
+            font-size: 0.75rem; 
+            font-weight: 600; 
+            color: #334155;
+        }
+        .subsection-item .item-text {
+            font-size: 0.65rem; 
+            font-weight: 400;
+            color: #475569; 
+        }
+        
+        .subsection-description-text {
+            display: block; 
+            padding: 4px 8px; 
+            background-color: #f1f5f9; 
+            border-radius: 6px;
+            font-size: 0.65rem; 
+            color: #475569;
+            font-weight: 400;
+            line-height: 1.4;
+            margin-top: 1px; 
+            border: 1px solid #e2e8f0;
+            margin-left: 28px;
+            margin-right: 1rem;
+            margin-bottom: 1px; 
+        }
+        
+        .info-icon {
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 0.7em; 
+            transition: color 0.2s;
+        }
+        .info-icon:hover {
+            color: #3b82f6;
+        }
+        
+        .tree-content > .fas {
+            width: 18px;
+            text-align: center;
+        }
+        .subsection-item .info-icon {
+            color: #94a3b8; 
+            margin-left: -2px;
+        }
+        .menu-item .fa-folder, .section-item .fa-folder {
+            color: #94a3b8; /* Gray folder icons like the image */
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <header class="top-bar">
+        <div class="flex items-center gap-3">
+            <a href="./dashboard.html" id="back-to-dashboard-btn" class="btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Back
+            </a>
+        </div>
+        
+        <button id="add-menu-btn" class="btn-secondary">
+            <i class="fas fa-plus"></i> Add Menu
+        </button>
+    </header>
+
+    <main class="main-container">
+        
+        <div id="company-node" class="company-node">
+            <h1 contenteditable="true" data-key="company_name">Loading Company...</h1>
+        </div>
+
+        <div class="content-wrapper">
+            
+            <div class="tree-view-column">
+                <p id="flowchart-loader">Loading project structure...</p>
+                <div id="flowchart-container">
+                    </div>
+            </div>
+
+            <div class="chat-column">
+                <div class="chat-box">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-900">AI Structure Refinement</h3>
+                    
+                    <div id="chat-messages" class="chat-messages">
+                             <div class="flex justify-start">
+                                 <span class="ai-message">Hello! I've loaded your project structure. What changes or refinements would you like me to generate? E.g., "Add a 'Careers' section to the 'About Us' menu."</span>
+                             </div>
+                    </div>
+                    
+                    <div class="chat-input-container">
+                        <textarea id="chat-input" class="chat-input" placeholder="Enter your request for regeneration..." rows="2"></textarea>
+                        <button id="regenerate-btn" class="regenerate-btn" disabled>
+                            <i class="fas fa-magic"></i> Regenerate
+                        </button>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </main>
+    
+    <div class="bottom-bar">
+        <div></div> <div class="flex items-center gap-3">
+            <button id="save-button" class="btn-secondary">
+                <i class="fas fa-save"></i>
+                Save Changes
+            </button>
+            <button id="save-to-dashboard-button" class="btn-secondary">
+                <i class="fas fa-sign-out-alt"></i>
+                Save to Dashboard
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const API_URL = 'https://structure-backend-d6a4.onrender.com';
+            const token = localStorage.getItem('access_token');
+
+            const companyNameEl = document.getElementById('company-node').querySelector('h1');
+            const flowchartContainer = document.getElementById('flowchart-container');
+            const loader = document.getElementById('flowchart-loader');
+            
+            // --- Action Button References ---
+            const addMenuButton = document.getElementById('add-menu-btn');
+            const saveButton = document.getElementById('save-button');
+            const saveToDashboardButton = document.getElementById('save-to-dashboard-button');
+            const chatInput = document.getElementById('chat-input');
+            const regenerateBtn = document.getElementById('regenerate-btn');
+            const chatMessages = document.getElementById('chat-messages');
+            
+            let currentProjectStructure = null; 
+
+            // --- Utility Functions ---
+            function escapeHTML(str) {
+                if (!str || typeof str !== 'string') return ''; 
+                return str.replace(/[&<>"']/g, m => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[m]);
+            }
+            
+            function getIconClass(pageName) {
+                if (!pageName || typeof pageName !== 'string') {
+                    return 'fas fa-file'; // Default
+                }
+                
+                const lowerName = pageName.toLowerCase();
+                const iconMap = {
+                    // --- Custom icons for image look ---
+                    'welcome': 'fas fa-info-circle',
+                    'about': 'fas fa-info-circle',
+                    'home': 'fas fa-home',
+                    // --- Rest of original icons (using a few common ones) ---
+                    'support': 'fas fa-headset', 'contact': 'fas fa-headset',
+                    'chat': 'fas fa-comments', 'help': 'fas fa-question-circle',
+                    'account': 'fas fa-user-circle', 'profile': 'fas fa-user-alt',
+                    'product': 'fas fa-box', 'store': 'fas fa-store',
+                    'blog': 'fas fa-newspaper', 'news': 'fas fa-newspaper',
+                };
+                for (const keyword in iconMap) {
+                    if (lowerName.includes(keyword)) {
+                        return iconMap[keyword];
+                    }
+                }
+                return 'fas fa-file';
+            }
+
+            // --- Chat Message Rendering ---
+            function addMessage(text, isUser) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'chat-message flex ' + (isUser ? 'justify-end' : 'justify-start');
+                
+                const span = document.createElement('span');
+                span.className = isUser ? 'user-message' : 'ai-message';
+                span.textContent = text;
+                
+                msgDiv.appendChild(span);
+                chatMessages.appendChild(msgDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
+            }
+
+            // --- Construct Absolute URLs ---
+            const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+            const loginUrl = `${currentPath}/index.html`;
+            const dashboardUrl = `${currentPath}/dashboard.html`;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const projectId = urlParams.get('id');
+
+            // --- 2. Authentication Check ---
+            if (!token) {
+                window.location.href = loginUrl;
+                return;
+            }
+
+            if (!projectId) {
+                alert('No project ID specified. Redirecting to dashboard.');
+                window.location.href = dashboardUrl;
+                return;
+            }
+            
+            // --- 4. Fetch Single Project Data ---
+            async function fetchProjectData() {
+                try {
+                    const response = await fetch(`${API_URL}/structures/${projectId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    if (!response.ok) {
+                        if (response.status === 401) throw new Error('Unauthorized');
+                        throw new Error('Could not fetch project data');
+                    }
+                    
+                    const project = await response.json();
+                    
+                    if (!Array.isArray(project.structure)) {
+                        throw new Error("Invalid structure data received from the server. (Not an array)");
+                    }
+                    
+                    currentProjectStructure = project.structure;
+                    
+                    renderProjectStructure(project);
+                    regenerateBtn.disabled = false; // Enable regeneration after initial load
+
+                } catch (error) {
+                    console.error('Error fetching project:', error);
+                    flowchartContainer.innerHTML = `<p style="color:red; padding: 1rem;">Error loading project. Details: ${error.message}. Please check console for network issues.</p>`;
+                } finally {
+                    if (loader) loader.remove();
+                }
+            }
+            
+            // --- Helper function to build L3 HTML ---
+            function createSubsectionsHtml(subsectionsArray) {
+                let html = '';
+                if (!subsectionsArray) subsectionsArray = []; 
+                
+                html += '<div class="tree-children">';
+                subsectionsArray.forEach((subsectionItem, subIndex) => {
+                    let subName, subDesc;
+                    
+                    if (typeof subsectionItem === 'object' && subsectionItem !== null && subsectionItem.name) {
+                        subName = subsectionItem.name;
+                        subDesc = subsectionItem.description || 'No description provided.';
+                    } else {
+                        subName = String(subsectionItem);
+                        subDesc = 'No description provided.';
+                    }
+
+                    html += `
+                        <div class="subsection-item tree-node" data-level="subsection">
+                            <div class="tree-content">
+                                <span class="tree-line-leaf"></span>
+                                <i class="fas fa-info-circle info-icon"></i>
+                                <span contenteditable="false" class="subsection-title item-text text-gray-600">${escapeHTML(subName)}</span>
+                                <div class="action-bar ml-auto">
+                                    <button class="action-btn edit-btn"><i class="fas fa-pencil-alt"></i></button>
+                                    <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
+                                    <button class="action-btn save-edit-btn hidden"><i class="fas fa-check"></i></button>
+                                    <button class="action-btn cancel-edit-btn hidden"><i class="fas fa-times"></i></button>
+                                </div>
+                            </div>
+                            <span contenteditable="false" class="subsection-description-text item-text hidden">${escapeHTML(subDesc)}</span>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                return html;
+            }
+            
+            // --- Helper function to build L2 HTML ---
+            function createSectionsHtml(sectionsArray) {
+                let html = '';
+                if (!sectionsArray) sectionsArray = [];
+                
+                html += '<div class="tree-children">';
+                sectionsArray.forEach((sectionItem, sectionIndex) => {
+                    let sectionText, subsectionsHtml;
+                    
+                    if (typeof sectionItem === 'object' && sectionItem !== null && (sectionItem.section || sectionItem.page || sectionItem.title)) {
+                        sectionText = sectionItem.section || sectionItem.page || sectionItem.title;
+                        subsectionsHtml = createSubsectionsHtml(sectionItem.subsections);
+                    } else {
+                        sectionText = String(sectionItem);
+                        subsectionsHtml = createSubsectionsHtml(null); 
+                    }
+
+                    html += `
+                        <div class="section-item tree-node" data-level="section">
+                            <div class="tree-content">
+                                <span class="tree-line-leaf"></span>
+                                <i class="fas fa-folder text-gray-500 w-4"></i>
+                                <span contenteditable="false" class="item-text flex-grow">${escapeHTML(sectionText)}</span>
+                                <div class="action-bar">
+                                    <button class="action-btn add-btn add-subsection-btn"><i class="fas fa-plus"></i></button>
+                                    <button class="action-btn edit-btn"><i class="fas fa-pencil-alt"></i></button>
+                                    <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
+                                    <button class="action-btn save-edit-btn hidden"><i class="fas fa-check"></i></button>
+                                    <button class="action-btn cancel-edit-btn hidden"><i class="fas fa-times"></i></button>
+                                </div>
+                            </div>
+                            ${subsectionsHtml}
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                return html;
+            }
+
+            // --- 5. Render the Project Structure (Vertical Menu List) ---
+            function renderProjectStructure(project) {
+                companyNameEl.textContent = escapeHTML(project.company_name);
+                flowchartContainer.innerHTML = '';
+
+                currentProjectStructure.forEach((menuItem, menuIndex) => {
+                    
+                    const menuText = menuItem.menu || menuItem.section || menuItem.page || menuItem.title;
+                    const iconClass = menuItem.icon || getIconClass(menuText); 
+                    
+                    let sectionsHtml = createSectionsHtml(menuItem.sections || menuItem.subsections);
+                    
+                    const menuContainerHtml = `
+                        <div class="menu-item tree-node" data-level="menu">
+                            <div class="tree-content">
+                                <span class="tree-line-leaf"></span>
+                                <i class="${iconClass} w-4"></i> 
+                                <span class="item-text" contenteditable="false">${escapeHTML(menuText)}</span>
+                                <div class="action-bar ml-auto">
+                                    <button class="action-btn add-btn add-section-btn"><i class="fas fa-plus"></i></button>
+                                    <button class="action-btn edit-btn"><i class="fas fa-pencil-alt"></i></button>
+                                    <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
+                                    <button class="action-btn save-edit-btn hidden"><i class="fas fa-check"></i></button>
+                                    <button class="action-btn cancel-edit-btn hidden"><i class="fas fa-times"></i></button>
+                                </div>
+                            </div>
+                            ${sectionsHtml}
+                        </div>
+                    `;
+                    
+                    flowchartContainer.insertAdjacentHTML('beforeend', menuContainerHtml);
+                });
+            }
+            
+            // --- 6. Save Function (READS FULL HIERARCHY) ---
+            async function saveChanges(buttonClicked) {
+                saveButton.disabled = true;
+                saveToDashboardButton.disabled = true;
+                
+                const originalButtonText = buttonClicked.innerHTML; 
+                buttonClicked.innerHTML = 'Saving...';
+
+                try {
+                    const companyName = companyNameEl.textContent.trim();
+                    const structure = [];
+                    
+                    document.querySelectorAll('#flowchart-container > .menu-item').forEach(menuNode => {
+                        const menuText = menuNode.querySelector(':scope > .tree-content .item-text').textContent.trim();
+                        const iconClass = menuNode.querySelector(':scope > .tree-content > .fas').className;
+                        
+                        const sections = [];
+                        menuNode.querySelectorAll(':scope > .tree-children > .section-item').forEach(sectionNode => {
+                            const sectionText = sectionNode.querySelector(':scope > .tree-content .item-text').textContent.trim();
+                            
+                            const subsections = [];
+                            sectionNode.querySelectorAll(':scope > .tree-children > .subsection-item').forEach(subsectionNode => {
+                                const subName = subsectionNode.querySelector('.subsection-title').textContent.trim();
+                                const subDesc = subsectionNode.querySelector('.subsection-description-text').textContent.trim();
+                                subsections.push({ name: subName, description: subDesc });
+                            });
+                            
+                            sections.push({ section: sectionText, subsections: subsections });
+                        });
+                        
+                        structure.push({
+                            menu: menuText, 
+                            icon: iconClass, 
+                            sections: sections 
+                        });
+                    });
+
+                    const payload = {
+                        company_name: companyName,
+                        structure: structure 
+                    };
+                    
+                    const response = await fetch(`${API_URL}/structures/${projectId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const err = await response.json();
+                        throw new Error(err.error || 'Failed to save');
+                    }
+
+                    buttonClicked.innerHTML = 'Saved!';
+                    
+                    setTimeout(() => {
+                        buttonClicked.innerHTML = originalButtonText;
+                        saveButton.disabled = false;
+                        saveToDashboardButton.disabled = false;
+                    }, 2000);
+                    
+                    return true; 
+
+                } catch (error) {
+                    console.error('Save failed:', error);
+                    alert(`Error: ${error.message}`);
+                    
+                    buttonClicked.innerHTML = originalButtonText;
+                    saveButton.disabled = false;
+                    saveToDashboardButton.disabled = false;
+                    return false; 
+                }
+            }
+            
+            // --- NEW: Regeneration Logic ---
+            async function handleRegeneration() {
+                const userInput = chatInput.value.trim();
+                if (!userInput) return;
+
+                // 1. Disable input/button and show user message
+                regenerateBtn.disabled = true;
+                chatInput.disabled = true;
+                const originalBtnText = regenerateBtn.innerHTML;
+                regenerateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+
+                addMessage(userInput, true);
+                chatInput.value = ''; // Clear input
+
+                // 2. Get current structure data 
+                const currentStructure = [];
+                document.querySelectorAll('#flowchart-container > .menu-item').forEach(menuNode => {
+                    const menuText = menuNode.querySelector(':scope > .tree-content .item-text').textContent.trim();
+                    const iconClass = menuNode.querySelector(':scope > .tree-content > .fas').className;
+                    
+                    const sections = [];
+                    menuNode.querySelectorAll(':scope > .tree-children > .section-item').forEach(sectionNode => {
+                        const sectionText = sectionNode.querySelector(':scope > .tree-content .item-text').textContent.trim();
+                        
+                        const subsections = [];
+                        sectionNode.querySelectorAll(':scope > .tree-children > .subsection-item').forEach(subsectionNode => {
+                            const subName = subsectionNode.querySelector('.subsection-title').textContent.trim();
+                            const subDesc = subsectionNode.querySelector('.subsection-description-text').textContent.trim();
+                            subsections.push({ name: subName, description: subDesc });
+                        });
+                        
+                        sections.push({ section: sectionText, subsections: subsections });
+                    });
+                    
+                    currentStructure.push({
+                        menu: menuText, 
+                        icon: iconClass, 
+                        sections: sections 
+                    });
+                });
+                
+                const currentCompanyName = companyNameEl.textContent.trim();
+                
+                try {
+                    // --- API CALL: Request structure update based on current data + chat input ---
+                    // This POST route is mapped to Flask's refine_structure
+                    
+                    const response = await fetch(`${API_URL}/structures/refine/${projectId}`, { 
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            company_name: currentCompanyName,
+                            current_structure: currentStructure, // Send the existing structure
+                            refinement_prompt: userInput // Send the user's change request
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Failed to refine structure.');
+                    }
+
+                    const newProject = await response.json();
+                    
+                    // 3. Update global variable and re-render the flowchart
+                    currentProjectStructure = newProject.structure;
+                    renderProjectStructure(newProject);
+                    
+                    addMessage("Structure updated successfully! Please review the changes in the left panel.", false);
+
+                } catch (error) {
+                    console.error('Refinement failed:', error);
+                    addMessage(`Error: ${error.message}. Please try again.`, false);
+                } finally {
+                    // 4. Restore buttons
+                    regenerateBtn.innerHTML = originalBtnText;
+                    regenerateBtn.disabled = chatInput.value.trim().length === 0; // Check if input is still empty
+                    chatInput.disabled = false;
+                    chatInput.focus();
+                }
+            }
+            
+            // --- 7. Event Listeners for Adding Items ---
+            
+            // --- Add L1 Menu Item ---
+            addMenuButton.addEventListener('click', () => {
+                const newMenuHtml = `
+                    <div class="menu-item tree-node" data-level="menu">
+                        <div class="tree-content">
+                            <span class="tree-line-leaf"></span>
+                            <i class="fas fa-home w-4"></i> 
+                            <span class="item-text" contenteditable="false">New Menu Item</span>
+                            <div class="action-bar ml-auto">
+                                <button class="action-btn add-btn add-section-btn"><i class="fas fa-plus"></i></button>
+                                <button class="action-btn edit-btn"><i class="fas fa-pencil-alt"></i></button>
+                                <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
+                                <button class="action-btn save-edit-btn hidden"><i class="fas fa-check"></i></button>
+                                <button class="action-btn cancel-edit-btn hidden"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="tree-children"></div>
+                    </div>`;
+                
+                flowchartContainer.insertAdjacentHTML('beforeend', newMenuHtml);
+                flowchartContainer.lastElementChild.scrollIntoView({ behavior: 'smooth' });
+            });
+
+            // --- 8. Event Delegation for Tree Actions (Unchanged) ---
+            flowchartContainer.addEventListener('click', (event) => {
+                const addSectionBtn = event.target.closest('button.add-section-btn');
+                const addSubsectionBtn = event.target.closest('button.add-subsection-btn');
+                
+                const deleteBtn = event.target.closest('button.delete-btn');
+                const editBtn = event.target.closest('button.edit-btn');
+                const saveBtn = event.target.closest('button.save-edit-btn');
+                const cancelBtn = event.target.closest('button.cancel-edit-btn');
+                const infoBtn = event.target.closest('.info-icon');
+
+                // --- Handle Add L2 Section ---
+                if (addSectionBtn) {
+                    const menuNode = addSectionBtn.closest('.menu-item');
+                    let childrenContainer = menuNode.querySelector(':scope > .tree-children');
+                    
+                    const newSectionHtml = `
+                        <div class="section-item tree-node" data-level="section">
+                            <div class="tree-content">
+                                <span class="tree-line-leaf"></span>
+                                <i class="fas fa-folder text-gray-500 w-4"></i>
+                                <span contenteditable="false" class="item-text flex-grow">New Section</span>
+                                <div class="action-bar">
+                                    <button class="action-btn add-btn add-subsection-btn"><i class="fas fa-plus"></i></button>
+                                    <button class="action-btn edit-btn"><i class="fas fa-pencil-alt"></i></button>
+                                    <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
+                                    <button class="action-btn save-edit-btn hidden"><i class="fas fa-check"></i></button>
+                                    <button class="action-btn cancel-edit-btn hidden"><i class="fas fa-times"></i></button>
+                                </div>
+                            </div>
+                            <div class="tree-children"></div>
+                        </div>`;
+                    
+                    childrenContainer.insertAdjacentHTML('beforeend', newSectionHtml);
+                }
+
+                // --- Handle Add L3 Subsection ---
+                else if (addSubsectionBtn) {
+                    const sectionNode = addSubsectionBtn.closest('.section-item');
+                    let childrenContainer = sectionNode.querySelector(':scope > .tree-children');
+                    
+                    const newSubsectionHtml = `
+                        <div class="subsection-item tree-node" data-level="subsection">
+                            <div class="tree-content">
+                                <span class="tree-line-leaf"></span>
+                                <i class="fas fa-info-circle info-icon"></i>
+                                <span contenteditable="false" class="subsection-title item-text text-gray-600">New Subsection</span>
+                                <div class="action-bar ml-auto">
+                                    <button class="action-btn edit-btn"><i class="fas fa-pencil-alt"></i></button>
+                                    <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
+                                    <button class="action-btn save-edit-btn hidden"><i class="fas fa-check"></i></button>
+                                    <button class="action-btn cancel-edit-btn hidden"><i class="fas fa-times"></i></button>
+                                </div>
+                            </div>
+                            <span contenteditable="false" class="subsection-description-text item-text hidden">Click edit to add a description.</span>
+                        </div>`;
+                    
+                    childrenContainer.insertAdjacentHTML('beforeend', newSubsectionHtml);
+                }
+                
+                // --- Handle Delete Clicks ---
+                else if (deleteBtn) {
+                    if (confirm('Are you sure you want to delete this item?')) {
+                        deleteBtn.closest('.tree-node').remove();
+                    }
+                }
+
+                // --- Handle Edit Clicks ---
+                else if (editBtn) {
+                    const itemBox = editBtn.closest('.tree-node');
+                    const actionBar = itemBox.querySelector('.action-bar');
+                    const editableSpans = itemBox.querySelectorAll(':scope > .tree-content .item-text, :scope > .subsection-description-text');
+
+                    editableSpans.forEach(span => {
+                        span.setAttribute('data-original-value', span.textContent);
+                        span.contentEditable = true;
+                    });
+
+                    actionBar.querySelector('.edit-btn').classList.add('hidden');
+                    actionBar.querySelector('.delete-btn').classList.add('hidden');
+                    actionBar.querySelector('.save-edit-btn').classList.remove('hidden');
+                    actionBar.querySelector('.cancel-edit-btn').classList.remove('hidden');
+                    
+                    const addBtn = actionBar.querySelector('.add-btn');
+                    if (addBtn) addBtn.classList.add('hidden');
+                    
+                    if (editableSpans[0]) editableSpans[0].focus();
+                }
+                
+                // --- Handle Save Edit Clicks ---
+                else if (saveBtn) {
+                    const itemBox = saveBtn.closest('.tree-node');
+                    const actionBar = itemBox.querySelector('.action-bar');
+                    
+                    itemBox.querySelectorAll('.item-text').forEach(span => {
+                        span.contentEditable = false;
+                        span.removeAttribute('data-original-value');
+                    });
+                    
+                    actionBar.querySelector('.edit-btn').classList.remove('hidden');
+                    actionBar.querySelector('.delete-btn').classList.remove('hidden');
+                    actionBar.querySelector('.save-edit-btn').classList.add('hidden');
+                    actionBar.querySelector('.cancel-edit-btn').classList.add('hidden');
+                    
+                    const addBtn = actionBar.querySelector('.add-btn');
+                    if (addBtn) addBtn.classList.remove('hidden');
+                }
+
+                // --- Handle Cancel Edit Clicks ---
+                else if (cancelBtn) {
+                    const itemBox = cancelBtn.closest('.tree-node');
+                    const actionBar = itemBox.querySelector('.action-bar');
+
+                    itemBox.querySelectorAll('.item-text').forEach(span => {
+                        span.contentEditable = false;
+                        span.textContent = span.getAttribute('data-original-value');
+                        span.removeAttribute('data-original-value');
+                    });
+
+                    actionBar.querySelector('.edit-btn').classList.remove('hidden');
+                    actionBar.querySelector('.delete-btn').classList.remove('hidden');
+                    actionBar.querySelector('.save-edit-btn').classList.add('hidden');
+                    actionBar.querySelector('.cancel-edit-btn').classList.add('hidden');
+                    
+                    const addBtn = actionBar.querySelector('.add-btn');
+                    if (addBtn) addBtn.classList.remove('hidden');
+                }
+                
+                // --- Handle Info Icon Clicks ---
+                else if (infoBtn) {
+                    const subsectionBox = infoBtn.closest('.subsection-item');
+                    const descriptionSpan = subsectionBox.querySelector('.subsection-description-text');
+                    if (descriptionSpan) {
+                        descriptionSpan.classList.toggle('hidden');
+                    }
+                }
+            });
+            
+            // --- 9. Event Listeners for Header/Footer/Chat Buttons ---
+            saveButton.addEventListener('click', (e) => saveChanges(e.target));
+            
+            saveToDashboardButton.addEventListener('click', async (e) => {
+                const success = await saveChanges(e.target);
+                if (success) {
+                    window.location.href = dashboardUrl; 
+                }
+            });
+            
+            regenerateBtn.addEventListener('click', handleRegeneration);
+            
+            // Enable button when text is in the input
+            chatInput.addEventListener('input', () => {
+                regenerateBtn.disabled = chatInput.value.trim().length === 0;
+            });
+            
+            // Allow sending with Enter (Shift+Enter for new line)
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (!regenerateBtn.disabled) {
+                        handleRegeneration();
+                    }
+                }
+            });
+            
+            // --- Initial Page Load ---
+            fetchProjectData();
+
+        });
+    </script>
+</body>
+</html>

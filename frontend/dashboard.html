@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebMap Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Poppins', sans-serif; background-color:#f8fafc; color:#334155; }
+.container { display:flex; height:100vh; }
+.sidebar { width:256px; background-color:white; box-shadow:0 1px 3px rgba(0,0,0,0.1); border-right:1px solid #e2e8f0; display:flex; flex-direction:column; }
+.sidebar-header { padding:24px; border-bottom:1px solid #e2e8f0; }
+.sidebar-header h1 { font-size:24px; font-weight:700; color:#1e293b; }
+.sidebar-nav { flex:1; padding:16px; }
+.nav-item { display:flex; align-items:center; gap:12px; padding:12px 16px; margin-bottom:8px; border-radius:8px; text-decoration:none; color:#475569; cursor:pointer; transition:0.2s; }
+.nav-item:hover { background-color:#f1f5f9; }
+.nav-item.active { background-color:#1e293b; color:white; }
+.nav-item i { width:20px; }
+.sidebar-footer { padding:16px; border-top:1px solid #e2e8f0; }
+.main-content { flex:1; overflow-y:auto; }
+.header { background-color:white; box-shadow:0 1px 3px rgba(0,0,0,0.1); border-bottom:1px solid #e2e8f0; padding:16px 32px; display:flex; align-items:center; justify-content:space-between; }
+.search-container { flex:1; max-width:672px; position:relative; }
+.search-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#94a3b8; }
+.search-input { width:100%; padding:10px 16px 10px 40px; border:1px solid #e2e8f0; border-radius:8px; font-size:14px; outline:none; transition:all 0.2s; }
+.search-input:focus { border-color:#64748b; box-shadow:0 0 0 3px rgba(100,116,139,0.1); }
+.user-info { display:flex; align-items:center; gap:12px; margin-left:24px; }
+.user-name { color:#475569; }
+.user-avatar { width:36px; height:36px; background-color:#1e293b; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-weight:600; font-size:14px; }
+.dashboard { padding:32px; }
+.dashboard-header { margin-bottom:32px; }
+.dashboard-header h2 { font-size:30px; font-weight:700; color:#0f172a; margin-bottom:4px; }
+.dashboard-header p { color:#64748b; }
+.project-table-container { overflow-x:auto; background-color:white; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); }
+.project-table { width:100%; border-collapse:collapse; }
+.project-table th { padding:12px 24px; text-align:left; font-size:14px; font-weight:600; color:#64748b; text-transform:uppercase; border-bottom:1px solid #e2e8f0; cursor:pointer; user-select:none; }
+.project-table th .fas { margin-left:5px; color:#cbd5e1; width:10px; }
+.project-table th.active-sort .fas { color:#334155; }
+.project-table td { padding:12px 24px; font-size:14px; color:#334155; border-bottom:1px solid #f1f5f9; }
+.project-table tbody tr:hover { background-color:#f8fafc; }
+.project-table tbody tr:nth-child(even) { background-color:#f1f5f9; }
+.action-btn { background:none; border:none; cursor:pointer; padding:5px; margin:0 4px; color:#64748b; transition:0.2s; }
+.action-btn:hover { color:#1e293b; }
+.delete-icon:hover { color:#ef4444; }
+.model-tag-display { font-size:12px; font-weight:500; padding:3px 8px; border-radius:4px; display:inline-block; }
+.model-tag-display.gemini { color:#334155; background-color:#e2e8f0; }
+.model-tag-display.openai { color:#0f172a; background-color:#b0c4de; }
+.pagination-container { margin-top:24px; display:flex; justify-content:flex-end; align-items:center; gap:8px; }
+.page-button { background:none; border:none; padding:8px 12px; cursor:pointer; color:#64748b; font-weight:500; border-radius:6px; transition:0.2s; font-size:16px; }
+.page-button:hover { background-color:#e2e8f0; }
+.page-button.active { background-color:#2563eb; color:white; font-weight:600; }
+@media(max-width:768px){.sidebar{width:200px}.dashboard{padding:16px}}
+</style>
+</head>
+<body>
+<div class="container">
+<aside class="sidebar">
+    <div class="sidebar-header"><h1>WebMap</h1></div>
+    <nav class="sidebar-nav">
+        <a href="#" class="nav-item active"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="./create.html" class="nav-item"><i class="fas fa-plus"></i><span>Create a new project</span></a>
+        <a href="#" class="nav-item"><i class="fas fa-life-ring"></i><span>Support</span></a>
+        <a href="./profile.html" class="nav-item"><i class="fas fa-user-circle"></i><span>Profile</span></a>
+    </nav>
+    <div class="sidebar-footer">
+        <a href="#" id="logout-button" class="nav-item"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+    </div>
+</aside>
+<main class="main-content">
+<header class="header">
+    <div class="search-container">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="search-input" class="search-input" placeholder="Search by name or category...">
+    </div>
+    <div class="user-info">
+        <span id="user-name" class="user-name">Loading...</span>
+        <div id="profile-icon" class="user-avatar">L</div>
+    </div>
+</header>
+<div class="dashboard">
+    <div class="dashboard-header">
+        <h2>Dashboard</h2>
+        <p>Welcome to WebMap.</p>
+    </div>
+    <div class="filter-container mb-6 flex items-center gap-4">
+        <label for="model-filter" style="font-weight:600;color:#1e293b;">Filter by Model:</label>
+        <select id="model-filter" class="search-input" style="width:auto;padding:8px 12px;">
+            <option value="all">All Models</option>
+            <option value="gemini">Gemini 2.5 Flash</option>
+            <option value="openai">GPT-4o mini</option>
+        </select>
+    </div>
+    <div class="project-table-container">
+        <table id="projects-table" class="project-table">
+            <thead>
+                <tr>
+                    <th data-sort-key="company_name">Company Name <i class="fas fa-sort"></i></th>
+                    <th data-sort-key="category">Category <i class="fas fa-sort"></i></th>
+                    <th data-sort-key="num_pages">Pages <i class="fas fa-sort"></i></th>
+                    <th>Model</th>
+                    <th data-sort-key="created_at">Created At <i class="fas fa-sort"></i></th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="projects-table-body">
+                <tr><td colspan="6" style="text-align:center;color:#64748b;">Loading projects...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="pagination-controls-container" class="pagination-container"></div>
+</div>
+</main>
+</div>
+
+<script>
+const API_URL='https://structure-backend-d6a4.onrender.com';
+const projectsTableBody=document.getElementById('projects-table-body');
+const userNameEl=document.getElementById('user-name');
+const profileIconEl=document.getElementById('profile-icon');
+const logoutButton=document.getElementById('logout-button');
+const modelFilterEl=document.getElementById('model-filter');
+const searchInputEl=document.getElementById('search-input');
+const paginationContainer=document.getElementById('pagination-controls-container');
+const ITEMS_PER_PAGE=20;
+let allProjectsCache=[], filteredProjectsCache=[], currentPage=1, currentSort={key:'created_at', direction:'desc'};
+
+function escapeHTML(str){return str?str.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])):'';}
+function getModelDisplayName(key){return key==='openai'?'GPT-4o mini':'Gemini 2.5 Flash';}
+function getModelClass(key){return key==='openai'?'openai':'gemini';}
+
+function updateSortIcons(){
+document.querySelectorAll('th[data-sort-key]').forEach(th=>{
+const icon=th.querySelector('i'); th.classList.remove('active-sort');
+if(th.dataset.sortKey===currentSort.key){ th.classList.add('active-sort'); icon.className=currentSort.direction==='desc'?'fas fa-sort-down':'fas fa-sort-up'; } else icon.className='fas fa-sort';
+});
+}
+
+function sortProjects(projects){
+const key=currentSort.key, dir=currentSort.direction==='asc'?1:-1;
+projects.sort((a,b)=>{
+let valA=a[key], valB=b[key];
+if(key==='created_at'){ valA=new Date(valA); valB=new Date(valB); } 
+else if(key==='num_pages'){ valA=Number(valA); valB=Number(valB); } 
+else { valA=String(valA||'').toLowerCase(); valB=String(valB||'').toLowerCase(); }
+if(valA<valB)return -1*dir; if(valA>valB)return 1*dir; return 0;
+});
+}
+
+function renderPaginationControls(){
+const total=filteredProjectsCache.length;
+paginationContainer.innerHTML='';
+if(total<=ITEMS_PER_PAGE) return;
+const totalPages=Math.ceil(total/ITEMS_PER_PAGE);
+const createBtn=(label,pageNum)=>{
+const btn=document.createElement('button'); btn.className=`page-button ${pageNum===currentPage?'active':''}`; btn.innerHTML=label;
+btn.onclick=()=>{ if(pageNum!==currentPage){ currentPage=pageNum; renderProjectsTable(filteredProjectsCache); renderPaginationControls(); } };
+return btn;
+}
+const prevBtn=createBtn('<i class="fas fa-chevron-left"></i>',currentPage>1?currentPage-1:1); prevBtn.disabled=currentPage===1;
+paginationContainer.appendChild(prevBtn);
+let startPage=Math.max(1,currentPage-1), endPage=Math.min(totalPages,currentPage+1), maxVisible=5;
+if(totalPages>maxVisible){ if(currentPage<=3){ startPage=1; endPage=maxVisible; } else if(currentPage>totalPages-3){ startPage=totalPages-maxVisible+1; endPage=totalPages; } } else{ startPage=1; endPage=totalPages; }
+if(startPage>1){ paginationContainer.appendChild(createBtn('1',1)); if(startPage>2){ const dots=document.createElement('span'); dots.textContent='...'; dots.style.padding='0 5px'; paginationContainer.appendChild(dots); } }
+for(let i=startPage;i<=endPage;i++){ paginationContainer.appendChild(createBtn(String(i),i)); }
+if(endPage<totalPages){ if(endPage<totalPages-1){ const dots=document.createElement('span'); dots.textContent='...'; dots.style.padding='0 5px'; paginationContainer.appendChild(dots); } paginationContainer.appendChild(createBtn(String(totalPages),totalPages)); }
+const nextBtn=createBtn('<i class="fas fa-chevron-right"></i>',currentPage<totalPages?currentPage+1:totalPages); nextBtn.disabled=currentPage===totalPages;
+paginationContainer.appendChild(nextBtn);
+}
+
+function renderProjectsTable(projects){
+const start=(currentPage-1)*ITEMS_PER_PAGE, end=start+ITEMS_PER_PAGE, slice=projects.slice(start,end);
+if(projects.length===0){ projectsTableBody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:#64748b;padding:20px;">No projects found.</td></tr>`; return; }
+projectsTableBody.innerHTML=slice.map(p=>{
+const modelDisplay=getModelDisplayName(p.model_used), modelClass=getModelClass(p.model_used);
+const date=new Date(p.created_at).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
+return `<tr data-id="${p.id}" data-name="${escapeHTML(p.company_name)}">
+<td>${escapeHTML(p.company_name)}</td>
+<td>${escapeHTML(p.category)}</td>
+<td>${String(p.num_pages)}</td>
+<td><span class="model-tag-display ${modelClass}">${modelDisplay}</span></td>
+<td>${date}</td>
+<td>
+<button class="action-btn view-btn" onclick="viewProject(${p.id})"><i class="fas fa-eye"></i></button>
+<button class="action-btn delete-icon" onclick="deleteProject(event,${p.id})"><i class="fas fa-trash"></i></button>
+</td>
+</tr>`;
+}).join('');
+}
+
+async function fetchProfile(){
+const token=localStorage.getItem('access_token'); if(!token){ window.location.href='./index.html'; return; }
+try{
+const res=await fetch(`${API_URL}/profile`,{headers:{'Authorization':`Bearer ${token}`}});
+if(!res.ok)throw new Error('Unauthorized'); const user=await res.json();
+const first=user.name.split(' ')[0], last=(user.name.split(' ').slice(-1)[0]||'');
+userNameEl.textContent=first; profileIconEl.textContent=(first[0]+(last[0]||'')).toUpperCase();
+}catch(err){ console.error(err); localStorage.removeItem('access_token'); window.location.href='./index.html'; }
+}
+
+async function fetchProjects(){
+const token=localStorage.getItem('access_token'); if(!token){ window.location.href='./index.html'; return; }
+projectsTableBody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:#64748b;">Loading projects...</td></tr>`;
+try{
+const res=await fetch(`${API_URL}/structures`,{headers:{'Authorization':`Bearer ${token}`}});
+if(!res.ok)throw new Error('Failed'); allProjectsCache=await res.json(); currentPage=1;
+applyFilter(modelFilterEl.value,searchInputEl.value);
+}catch(err){ console.error(err); projectsTableBody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:#ef4444;">Failed to load projects.</td></tr>`; }
+}
+
+function applyFilter(modelKey,searchTerm){
+let filtered=allProjectsCache; if(modelKey!=='all'){ filtered=allProjectsCache.filter(p=>(p.model_used||'gemini')===modelKey); }
+if(searchTerm&&searchTerm.trim()!==''){ const s=searchTerm.toLowerCase(); filtered=filtered.filter(p=>p.company_name.toLowerCase().includes(s)||p.category.toLowerCase().includes(s)); }
+sortProjects(filtered); filteredProjectsCache=filtered; currentPage=1; renderProjectsTable(filteredProjectsCache); renderPaginationControls();
+}
+
+modelFilterEl.addEventListener('change',()=>applyFilter(modelFilterEl.value,searchInputEl.value));
+searchInputEl.addEventListener('input',()=>applyFilter(modelFilterEl.value,searchInputEl.value));
+
+document.querySelectorAll('th[data-sort-key]').forEach(th=>{
+th.addEventListener('click',()=>{ const key=th.dataset.sortKey; currentSort.direction=currentSort.key===key?(currentSort.direction==='asc'?'desc':'asc'):'desc'; currentSort.key=key; applyFilter(modelFilterEl.value,searchInputEl.value); updateSortIcons(); });
+});
+
+logoutButton.addEventListener('click',()=>{ localStorage.removeItem('access_token'); window.location.href='./index.html'; });
+
+function viewProject(id){ window.location.href=`./flowchart.html?project_id=${id}`; }
+function deleteProject(e,id){ e.stopPropagation(); alert('Delete project ID: '+id); }
+
+(function init(){ fetchProfile(); fetchProjects(); updateSortIcons(); })();
+</script>
+</body>
+</html>
+
+

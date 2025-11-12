@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebMap Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f8fafc; color: #334155; }
+        .container { display: flex; height: 100vh; }
+        .sidebar { width: 256px; background-color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 24px; border-bottom: 1px solid #e2e8f0; }
+        .sidebar-header h1 { font-size: 24px; font-weight: 700; color: #1e293b; }
+        .sidebar-nav { flex: 1; padding: 16px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; text-decoration: none; color: #475569; transition: background-color 0.2s; cursor: pointer; }
+        .nav-item:hover { background-color: #f1f5f9; }
+        .nav-item.active { background-color: #1e293b; color: white; }
+        .nav-item i { width: 20px; }
+        .sidebar-footer { padding: 16px; border-top: 1px solid #e2e8f0; }
+        .main-content { flex: 1; overflow-y: auto; padding: 32px; }
+        .main-content h2 { font-size: 30px; font-weight: 700; color: #0f172a; margin-bottom: 24px; }
+        .profile-card { background-color: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-width: 600px; overflow: hidden; }
+        .form-input { width: 100%; padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; transition: all 0.2s; }
+        .form-input:focus { border-color: #64748b; box-shadow: 0 0 0 3px rgba(100,116,139,0.1); }
+        .form-input:disabled { background-color: #f8fafc; color: #64748b; cursor: not-allowed; }
+        .form-label { display: block; text-sm font-medium text-gray-700 mb-1; }
+        .btn-primary { background-color: #1e293b; color: white; padding: 10px 16px; border-radius: 8px; font-weight: 500; cursor: pointer; transition: background-color 0.2s; }
+        .btn-primary:hover { background-color: #334155; }
+        .btn-primary:disabled { background-color: #94a3b8; cursor: not-allowed; }
+        .btn-secondary { background-color: #e2e8f0; color: #334155; padding: 10px 16px; border-radius: 8px; font-weight: 500; cursor: pointer; transition: background-color 0.2s; }
+        .btn-secondary:hover { background-color: #cbd5e1; }
+        .modal-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background-color: rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:1000; }
+        .modal-content { background-color: white; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); width:100%; max-width:400px; padding:24px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <aside class="sidebar">
+        <div class="sidebar-header"><h1>WebMap</h1></div>
+        <nav class="sidebar-nav">
+            <a href="./dashboard.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+            <a href="./create.html" class="nav-item"><i class="fas fa-plus"></i><span>Create a new project</span></a>
+            <a href="#" class="nav-item"><i class="fas fa-life-ring"></i><span>Support</span></a>
+            <a href="./profile.html" class="nav-item active"><i class="fas fa-user-circle"></i><span>Profile</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="#" id="logout-button" class="nav-item"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <h2>Your Profile</h2>
+        <div class="profile-card">
+            <form id="profile-form" class="p-6 space-y-4">
+                <div><label class="form-label">Full Name</label><input type="text" id="profile-name" class="form-input" disabled></div>
+                <div><label class="form-label">Email</label><input type="email" id="profile-email" class="form-input" disabled></div>
+                <div><label class="form-label">Phone</label><input type="tel" id="profile-phone" class="form-input" disabled></div>
+                <div id="profile-message" class="text-sm" aria-live="polite"></div>
+                <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                    <button type="button" id="edit-button" class="btn-primary">Edit</button>
+                    <button type="submit" id="save-button" class="btn-primary hidden" disabled>Save Changes</button>
+                    <button type="button" id="cancel-button" class="btn-secondary hidden">Cancel</button>
+                </div>
+            </form>
+            <div class="p-6 border-t border-gray-200 space-y-4">
+                <div>
+                    <label class="form-label">Password</label>
+                    <div class="relative">
+                        <input type="password" id="password-display-input" class="form-input pr-10" value="••••••••" disabled>
+                        <button type="button" id="toggle-password-view" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Password is hidden by default.</p>
+                </div>
+                <div class="flex justify-end">
+                    <button type="button" id="change-password-button" class="btn-secondary">Change Password</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="password-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 class="text-xl font-semibold mb-4">Change Password</h3>
+        <form id="password-form" class="space-y-4">
+            <div>
+                <label class="form-label">Old Password</label>
+                <div class="relative">
+                    <input type="password" id="old-password" class="form-input pr-10" required>
+                    <button type="button" class="toggle-password-modal absolute inset-y-0 right-0 px-3 flex items-center text-gray-500"><i class="fas fa-eye"></i></button>
+                </div>
+            </div>
+            <div>
+                <label class="form-label">New Password</label>
+                <div class="relative">
+                    <input type="password" id="new-password" class="form-input pr-10" required>
+                    <button type="button" class="toggle-password-modal absolute inset-y-0 right-0 px-3 flex items-center text-gray-500"><i class="fas fa-eye"></i></button>
+                </div>
+            </div>
+            <div id="password-message" class="text-sm" aria-live="polite"></div>
+            <div class="flex justify-end gap-3 pt-4">
+                <button type="button" id="cancel-password-button" class="btn-secondary">Cancel</button>
+                <button type="submit" id="submit-password-button" class="btn-primary">Update Password</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const API_URL = 'https://structure-backend-d6a4.onrender.com';
+    const token = localStorage.getItem('access_token');
+    const loginUrl = './index.html';
+    if(!token){ window.location.href = loginUrl; return; }
+
+    const profileForm = document.getElementById('profile-form');
+    const editButton = document.getElementById('edit-button');
+    const saveButton = document.getElementById('save-button');
+    const cancelButton = document.getElementById('cancel-button');
+    const profileMessage = document.getElementById('profile-message');
+    const nameInput = document.getElementById('profile-name');
+    const emailInput = document.getElementById('profile-email');
+    const phoneInput = document.getElementById('profile-phone');
+    const inputs = [nameInput,emailInput,phoneInput];
+    let originalData = {};
+
+    const passwordModal = document.getElementById('password-modal');
+    const changePasswordButton = document.getElementById('change-password-button');
+    const cancelPasswordButton = document.getElementById('cancel-password-button');
+    const passwordForm = document.getElementById('password-form');
+    const oldPasswordInput = document.getElementById('old-password');
+    const newPasswordInput = document.getElementById('new-password');
+    const passwordMessage = document.getElementById('password-message');
+    const submitPasswordButton = document.getElementById('submit-password-button');
+    const modalPasswordToggles = document.querySelectorAll('.toggle-password-modal');
+    const passwordDisplayInput = document.getElementById('password-display-input');
+    const togglePasswordViewButton = document.getElementById('toggle-password-view');
+    const logoutButton = document.getElementById('logout-button');
+
+    async function fetchProfile(){
+        try{
+            const res = await fetch(`${API_URL}/profile`, {
+                headers:{'Authorization':`Bearer ${token}`}
+            });
+            if(!res.ok) throw new Error('Could not fetch profile');
+            const user = await res.json();
+            nameInput.value = user.name;
+            emailInput.value = user.email;
+            phoneInput.value = user.phone;
+            originalData = {...user};
+        }catch(e){
+            profileMessage.textContent='Error loading profile';
+            profileMessage.className='text-sm text-red-600';
+        }
+    }
+
+    function setEditMode(isEditing){
+        editButton.classList.toggle('hidden', isEditing);
+        saveButton.classList.toggle('hidden', !isEditing);
+        cancelButton.classList.toggle('hidden', !isEditing);
+        inputs.forEach(i=>i.disabled=!isEditing);
+        if(!isEditing){ saveButton.disabled=true; profileMessage.textContent=''; }
+    }
+
+    editButton.addEventListener('click', ()=>setEditMode(true));
+    cancelButton.addEventListener('click', ()=>{
+        nameInput.value=originalData.name;
+        emailInput.value=originalData.email;
+        phoneInput.value=originalData.phone;
+        setEditMode(false);
+    });
+
+    profileForm.addEventListener('input', ()=>{
+        const changed = nameInput.value!==originalData.name || emailInput.value!==originalData.email || phoneInput.value!==originalData.phone;
+        saveButton.disabled=!changed;
+    });
+
+    profileForm.addEventListener('submit', async e=>{
+        e.preventDefault();
+        saveButton.disabled=true;
+        saveButton.textContent='Saving...';
+        try{
+            const res = await fetch(`${API_URL}/profile`,{
+                method:'PUT',
+                headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+                body: JSON.stringify({name:nameInput.value,email:emailInput.value,phone:phoneInput.value})
+            });
+            const data = await res.json();
+            if(!res.ok) throw new Error(data.error||'Failed to save');
+            originalData={name:nameInput.value,email:emailInput.value,phone:phoneInput.value};
+            profileMessage.textContent='Profile saved successfully!';
+            profileMessage.className='text-sm text-green-600';
+            setEditMode(false);
+        }catch(e){
+            profileMessage.textContent=e.message;
+            profileMessage.className='text-sm text-red-600';
+        }finally{ saveButton.textContent='Save Changes'; }
+    });
+
+    togglePasswordViewButton.addEventListener('click', ()=>{
+        const isPassword=passwordDisplayInput.type==='password';
+        passwordDisplayInput.type=isPassword?'text':'password';
+        passwordDisplayInput.value=isPassword?'password-is-hidden':'••••••••';
+        togglePasswordViewButton.querySelector('i').classList.toggle('fa-eye');
+        togglePasswordViewButton.querySelector('i').classList.toggle('fa-eye-slash');
+    });
+
+    function showPasswordModal(show){
+        passwordModal.style.display=show?'flex':'none';
+        if(!show){ passwordForm.reset(); passwordMessage.textContent=''; modalPasswordToggles.forEach(t=>{
+            t.querySelector('i').classList.add('fa-eye'); t.querySelector('i').classList.remove('fa-eye-slash'); t.previousElementSibling.type='password';
+        });}
+    }
+
+    changePasswordButton.addEventListener('click', ()=>showPasswordModal(true));
+    cancelPasswordButton.addEventListener('click', ()=>showPasswordModal(false));
+    modalPasswordToggles.forEach(toggle=>{
+        toggle.addEventListener('click', ()=>{
+            const input=toggle.previousElementSibling;
+            const isPassword=input.type==='password';
+            input.type=isPassword?'text':'password';
+            toggle.querySelector('i').classList.toggle('fa-eye');
+            toggle.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+    });
+
+    passwordForm.addEventListener('submit', async e=>{
+        e.preventDefault();
+        submitPasswordButton.disabled=true;
+        submitPasswordButton.textContent='Updating...';
+        try{
+            const res = await fetch(`${API_URL}/change-password`,{
+                method:'POST',
+                headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+                body:JSON.stringify({old_password:oldPasswordInput.value,new_password:newPasswordInput.value})
+            });
+            const data = await res.json();
+            if(!res.ok) throw new Error(data.error||'Failed to update password');
+            passwordMessage.textContent='Password updated successfully!';
+            passwordMessage.className='text-sm text-green-600';
+            setTimeout(()=>showPasswordModal(false),1500);
+        }catch(e){ passwordMessage.textContent=e.message; passwordMessage.className='text-sm text-red-600'; }
+        finally{ submitPasswordButton.disabled=false; submitPasswordButton.textContent='Update Password'; }
+    });
+
+    logoutButton.addEventListener('click', async ()=>{
+        if(token){
+            try{ await fetch(`${API_URL}/logout`,{method:'POST',headers:{'Authorization':`Bearer ${token}`}}); }catch(e){ console.error(e);}
+        }
+        localStorage.removeItem('access_token');
+        window.location.href=loginUrl;
+    });
+
+    fetchProfile();
+});
+</script>
+</body>
+</html>

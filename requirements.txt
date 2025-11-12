@@ -1,0 +1,11 @@
+openai
+Flask
+Flask-CORS
+Flask-JWT-Extended
+Flask-Bcrypt
+SQLAlchemy
+requests
+Flask-SQLAlchemy
+python-dotenv
+psycopg2-binary
+gunicorn
