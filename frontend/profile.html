@@ -111,7 +111,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const API_URL = 'https://structure-backend-d6a4.onrender.com';
+    const API_URL = 'http://localhost:5001';
     const token = localStorage.getItem('access_token');
     const loginUrl = './index.html';
     if(!token){ window.location.href = loginUrl; return; }
