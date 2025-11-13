@@ -1,41 +1,77 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "src": "api/app.py",
+      "use": "@vercel/python"
+    }
+  ],
   "routes": [
     {
       "src": "/login",
+      "methods": ["POST", "GET", "OPTIONS"],
       "dest": "api/app.py"
     },
     {
       "src": "/register",
+      "methods": ["POST", "GET", "OPTIONS"],
       "dest": "api/app.py"
     },
     {
       "src": "/logout",
+      "methods": ["POST", "OPTIONS"],
       "dest": "api/app.py"
     },
     {
       "src": "/profile",
+      "methods": ["GET", "PUT", "OPTIONS"],
       "dest": "api/app.py"
     },
     {
       "src": "/change-password",
+      "methods": ["POST", "OPTIONS"],
       "dest": "api/app.py"
     },
     {
       "src": "/generate",
+      "methods": ["POST", "OPTIONS"],
       "dest": "api/app.py"
     },
     {
-      "src": "/structures(.*)",
+      "src": "/structures/(.*)",
       "dest": "api/app.py"
+    },
+    {
+      "src": "/structures",
+      "dest": "api/app.py"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "frontend/$1"
     },
     {
       "src": "/assets/(.*)",
       "dest": "frontend/assets/$1"
     },
     {
-      "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|svg|ico|html))",
+      "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|svg|ico))",
       "dest": "frontend/$1"
+    },
+    {
+      "src": "/dashboard.html",
+      "dest": "frontend/dashboard.html"
+    },
+    {
+      "src": "/create.html",
+      "dest": "frontend/create.html"
+    },
+    {
+      "src": "/profile.html",
+      "dest": "frontend/profile.html"
+    },
+    {
+      "src": "/flowchart.html",
+      "dest": "frontend/flowchart.html"
     },
     {
       "src": "/",
