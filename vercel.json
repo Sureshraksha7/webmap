@@ -1,5 +1,10 @@
 {
   "version": 2,
+  "functions": {
+    "backend/api/app.py": {
+      "runtime": "python3.11"
+    }
+  },
   "builds": [
     { "src": "backend/api/app.py", "use": "@vercel/python@3.1.0" }
   ],
