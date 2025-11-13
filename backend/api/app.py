@@ -125,14 +125,27 @@ def handle_forbidden(e):
 @app.errorhandler(Exception)
 def handle_exception(e):
     """Log all other exceptions"""
-    logger.error(f"Exception occurred: {str(e)}", exc_info=True)
-    # Return generic error to client
-    return jsonify({"error": "An internal error occurred"}), 500
+    import traceback
+    error_trace = traceback.format_exc()
+    logger.error(f"Exception occurred: {str(e)}\n{error_trace}")
+    # Return more detailed error in development, generic in production
+    if os.environ.get('VERCEL') or os.environ.get('FLASK_ENV') != 'development':
+        return jsonify({"error": "An internal error occurred"}), 500
+    else:
+        return jsonify({"error": str(e), "traceback": error_trace}), 500
 
 # --- End of Logging Configuration ---
 # --- Database and Auth Configuration ---
 # Prefer managed DB via DATABASE_URL; fall back to local SQLite for dev
-_db_url = os.environ.get("DATABASE_URL", "sqlite:///users.db")
+_db_url = os.environ.get("DATABASE_URL")
+if not _db_url:
+    if os.environ.get('VERCEL'):
+        # On Vercel, DATABASE_URL is required
+        raise ValueError("DATABASE_URL environment variable is required on Vercel. Please set it in your Vercel project settings.")
+    else:
+        # Local development - use SQLite
+        _db_url = "sqlite:///users.db"
+
 if _db_url.startswith("postgres://"):
     _db_url = _db_url.replace("postgres://", "postgresql://", 1)
 
