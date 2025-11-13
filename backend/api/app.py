@@ -11,6 +11,10 @@ import re
 import logging
 from logging.handlers import RotatingFileHandler
 import sys
+from dotenv import load_dotenv, find_dotenv
+
+# Load environment variables from a .env file if present (won't override existing env vars)
+load_dotenv(dotenv_path=find_dotenv(), override=False)
 
 # Configure Flask app with writable instance path for Vercel
 if os.environ.get('VERCEL'):
@@ -215,8 +219,20 @@ jwt = JWTManager(app)
 # Note: It's safer to load this from an environment variable
 # Prefer a stable model
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
-API_URL_GEMINI = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GOOGLE_API_KEY}"
+# Normalize requested Gemini model names to known-good v1 identifiers
+_requested_gemini_model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash").strip()
+_gemini_model_aliases = {
+    "gemini-2.5-flash": "gemini-2.0-flash",      # compatibility mapping
+    "gemini 2.5 flash": "gemini-2.0-flash",
+    "gemini-2.5-flash-exp": "gemini-2.0-flash",
+    "gemini-1.5-flash": "gemini-1.5-flash",      # still valid on v1
+    "gemini-1.5-pro": "gemini-1.5-pro",
+    "gemini-2.0-flash": "gemini-2.0-flash",
+    "gemini-2.0-pro": "gemini-2.0-pro",
+}
+GEMINI_MODEL = _gemini_model_aliases.get(_requested_gemini_model.lower(), _requested_gemini_model)
+# Use the v1 endpoint which supports current Gemini models
+API_URL_GEMINI = f"https://generativelanguage.googleapis.com/v1/models/{GEMINI_MODEL}:generateContent?key={GOOGLE_API_KEY}"
 # --- OpenAI API Config (NEW) ---
 # IMPORTANT: This key is now integrated
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
@@ -397,12 +413,17 @@ def generate_content_with_model(model_choice, company_name, category, num_pages,
     else: # Default to gemini
         # --- Gemini API Call Logic ---
         logger.debug("Using Gemini API")
-        payload = { 
-            "contents": [{"parts": [{"text": prompt}]}], 
-            "generationConfig": { 
-                "responseMimeType": "application/json", 
-                "responseSchema": json_schema # Use the updated schema
-            } 
+        payload = {
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [{"text": prompt}]
+                }
+            ],
+            "generationConfig": {
+                "temperature": 0.4,
+                "maxOutputTokens": 2048
+            }
         }
         headers = {"Content-Type": "application/json"}
         logger.debug(f"Gemini API request payload prepared")
