@@ -485,7 +485,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Use relative URL - automatically works on Vercel
-            const API_URL = window.location.origin;
+            const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5001' : window.location.origin;
             const token = localStorage.getItem('access_token');
 
             const companyNameEl = document.getElementById('company-node').querySelector('h1');
