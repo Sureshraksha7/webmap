@@ -2,16 +2,32 @@
   "version": 2,
   "routes": [
     {
+      "src": "/api/(login|register|logout|profile|change-password|generate|structures.*)",
+      "dest": "api/app.py"
+    },
+    {
       "src": "/(login|register|logout|profile|change-password|generate|structures.*)",
       "dest": "api/app.py"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "frontend/assets/$1"
+    },
+    {
+      "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|svg|ico))",
+      "dest": "frontend/$1"
     },
     {
       "src": "/",
       "dest": "frontend/index.html"
     },
     {
+      "src": "/(dashboard|create|profile|flowchart)\\.html",
+      "dest": "frontend/$1.html"
+    },
+    {
       "src": "/(.*)",
-      "dest": "frontend/$1"
+      "dest": "frontend/index.html"
     }
   ]
 }
