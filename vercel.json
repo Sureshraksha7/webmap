@@ -2,7 +2,7 @@
   "version": 2,
   "functions": {
     "backend/api/app.py": {
-      "runtime": "**@vercel/python@3.11**", 
+      "runtime": "python3.11",
       "maxDuration": 10,
       "memory": 1024
     }
@@ -12,5 +12,4 @@
     { "src": "/", "dest": "/frontend/index.html" },
     { "src": "/(.*)", "dest": "/frontend/$1" }
   ]
-}
 }
