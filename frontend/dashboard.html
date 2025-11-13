@@ -113,7 +113,8 @@ body { font-family:'Poppins', sans-serif; background-color:#f8fafc; color:#33415
 </div>
 
 <script>
-const API_URL = ''; // same-origin (Vercel)
+// Use relative URL - automatically works on Vercel
+const API_URL=window.location.hostname==='localhost'?'http://localhost:5001':window.location.origin;
 const projectsTableBody=document.getElementById('projects-table-body');
 const userNameEl=document.getElementById('user-name');
 const profileIconEl=document.getElementById('profile-icon');

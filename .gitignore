@@ -1,41 +1,44 @@
-# Secrets
-.env
-*.env
-
 # Python
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
+*$py.class
 *.so
-*.egg-info/
-build/
-dist/
-.venv/
-venv/
+.Python
 env/
-.python-version
-.pytest_cache/
-.mypy_cache/
-.coverage
-htmlcov/
+venv/
+ENV/
+.venv
 
-# Flask/Logs
+# Flask
 instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
 *.log
 
-# Node/Frontend (if any)
-node_modules/
-frontend/node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Environment variables
+.env
+.env.local
 
-# OS/editor
-.DS_Store
-Thumbs.db
+# IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Vercel
-.vercel/
+.vercel
+
+# Node (if any)
+node_modules/
+npm-debug.log
+yarn-error.log
+
