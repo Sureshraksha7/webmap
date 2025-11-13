@@ -11,10 +11,15 @@ import re
 
 app = Flask(__name__)
 CORS(app)
-
 # --- Database and Auth Configuration ---
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+# Prefer managed DB via DATABASE_URL; fall back to local SQLite for dev
+_db_url = os.environ.get("DATABASE_URL", "sqlite:///users.db")
+if _db_url.startswith("postgres://"):
+    _db_url = _db_url.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 # IMPORTANT: Change this to a random, secret string in production!
 app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'your-super-secret-key-change-this')
 app.config["JWT_BLACKLIST_ENABLED"] = True
@@ -29,8 +34,12 @@ jwt = JWTManager(app)
 
 # --- Google API Config ---
 # Note: It's safer to load this from an environment variable
-GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
-API_URL_GEMINI = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key={GOOGLE_API_KEY}"
+# Prefer a stable model
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
+API_URL_GEMINI = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
+# When calling:
+headers = {"Content-Type": "application/json", "x-goog-api-key": GOOGLE_API_KEY}
+response = requests.post(API_URL_GEMINI, headers=headers, data=json.dumps(payload))
 # --- OpenAI API Config (NEW) ---
 # IMPORTANT: This key is now integrated
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
