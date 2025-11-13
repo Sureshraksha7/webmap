@@ -1,11 +1,10 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "backend/api/app.py",
-      "use": "@vercel/python"
+  "functions": {
+    "backend/api/app.py": {
+      "runtime": "python3.9"
     }
-  ],
+  },
   "routes": [
     {
       "src": "/(login|register|logout|profile|change-password|generate|structures.*)",
