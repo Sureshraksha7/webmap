@@ -1,67 +1,15 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/app.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "frontend/**",
-      "use": "@vercel/static"
+  "functions": {
+    "backend/api/app.py": {
+      "runtime": "python3.12",
+      "maxDuration": 10,
+      "memory": 1024
     }
-  ],
+  },
   "routes": [
-    {
-      "src": "/login",
-      "dest": "/api/app.py"
-    },
-    {
-      "src": "/register",
-      "dest": "/api/app.py"
-    },
-    {
-      "src": "/logout",
-      "dest": "/api/app.py"
-    },
-    {
-      "src": "/profile",
-      "dest": "/api/app.py"
-    },
-    {
-      "src": "/change-password",
-      "dest": "/api/app.py"
-    },
-    {
-      "src": "/generate",
-      "dest": "/api/app.py"
-    },
-    {
-      "src": "/structures/(.*)",
-      "dest": "/api/app.py"
-    },
-    {
-      "src": "/structures",
-      "dest": "/api/app.py"
-    },
-    {
-      "src": "/assets/(.*)",
-      "dest": "/frontend/assets/$1"
-    },
-    {
-      "src": "/(.*\\.(html|css|js|png|jpg|jpeg|gif|svg|ico|webp))",
-      "dest": "/frontend/$1"
-    },
-    {
-      "src": "/(dashboard|create|profile|flowchart)\\.html",
-      "dest": "/frontend/$1.html"
-    },
-    {
-      "src": "/",
-      "dest": "/frontend/index.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/index.html"
-    }
+    { "src": "/(login|register|logout|profile|change-password|generate|structures.*)", "dest": "/backend/api/app.py" },
+    { "src": "/", "dest": "/frontend/index.html" },
+    { "src": "/(.*)", "dest": "/frontend/$1" }
   ]
 }
