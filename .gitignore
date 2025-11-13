@@ -22,6 +22,9 @@ logs/
 # Environment variables
 .env
 .env.local
+.env.vercel
+.env.production
+.env.*
 
 # IDE
 .vscode/
