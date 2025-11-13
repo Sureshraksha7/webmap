@@ -703,9 +703,14 @@ def logout():
         return jsonify({"error": str(e)}), 500
 
 
-if __name__ == '__main__':
-    # Creates the database tables if they don't exist
-    with app.app_context():
+# Create database tables (works both locally and on Vercel)
+with app.app_context():
+    try:
         db.create_all()
+        logger.info("Database tables created/verified successfully")
+    except Exception as e:
+        logger.error(f"Error creating database tables: {str(e)}")
+
+if __name__ == '__main__':
     # Use port 5001 to avoid conflict with macOS AirPlay Receiver on port 5000
     app.run(debug=True, host='0.0.0.0', port=5001)
