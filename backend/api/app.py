@@ -144,7 +144,7 @@ def handle_exception(e):
 # --- End of Logging Configuration ---
 # --- Database and Auth Configuration ---
 # Prefer managed DB via DATABASE_URL; fall back to local SQLite for dev
-_db_url = os.environ.get("DATABASE_URL", "").strip()
+_db_url = os.environ.get("DATABASE_URL", "").strip().strip('"').strip("'")
 
 if not _db_url:
     if os.environ.get('VERCEL'):
