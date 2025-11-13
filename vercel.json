@@ -1,12 +1,11 @@
 {
   "version": 2,
-  "functions": {
-    "backend/api/app.py": {
-      "runtime": "python3.12",
-      "maxDuration": 30,
-      "memory": 1024
+  "builds": [
+    {
+      "src": "backend/api/app.py",
+      "use": "@vercel/python"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/(login|register|logout|profile|change-password|generate|structures.*)",
