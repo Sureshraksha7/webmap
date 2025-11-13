@@ -1,10 +1,5 @@
 {
   "version": 2,
-  "functions": {
-    "backend/api/app.py": {
-      "runtime": "python3.9"
-    }
-  },
   "routes": [
     {
       "src": "/(login|register|logout|profile|change-password|generate|structures.*)",
