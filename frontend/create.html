@@ -83,7 +83,8 @@
         document.addEventListener('DOMContentLoaded', () => {
 
             // ✅ Render backend URL
-            const API_URL = 'http://localhost:5001';
+            // Use relative URL - automatically works on Vercel
+            const API_URL = window.location.origin;
 
             const token = localStorage.getItem('access_token');
             const createForm = document.getElementById('create-form');
