@@ -12,7 +12,14 @@ import logging
 from logging.handlers import RotatingFileHandler
 import sys
 
-app = Flask(__name__)
+# Configure Flask app with writable instance path for Vercel
+if os.environ.get('VERCEL'):
+    # On Vercel, use /tmp which is writable
+    app = Flask(__name__, instance_path='/tmp/flask_instance')
+else:
+    # Local development uses default instance path
+    app = Flask(__name__)
+
 CORS(app)
 
 # --- Logging Configuration ---
@@ -137,20 +144,36 @@ def handle_exception(e):
 # --- End of Logging Configuration ---
 # --- Database and Auth Configuration ---
 # Prefer managed DB via DATABASE_URL; fall back to local SQLite for dev
-_db_url = os.environ.get("DATABASE_URL")
+_db_url = os.environ.get("DATABASE_URL", "").strip()
+
 if not _db_url:
     if os.environ.get('VERCEL'):
         # On Vercel, DATABASE_URL is required
+        logger.error("❌ DATABASE_URL environment variable is missing or empty on Vercel!")
+        logger.error("Please set DATABASE_URL in Vercel Dashboard:")
+        logger.error("  1. Go to https://vercel.com → Your Project → Settings → Environment Variables")
+        logger.error("  2. Add DATABASE_URL with your PostgreSQL connection string")
+        logger.error("  3. Example: postgresql://user:password@host:5432/database")
         raise ValueError("DATABASE_URL environment variable is required on Vercel. Please set it in your Vercel project settings.")
     else:
         # Local development - use SQLite
         _db_url = "sqlite:///users.db"
+        logger.info("Using local SQLite database for development")
 
+# Convert postgres:// to postgresql:// for SQLAlchemy compatibility
 if _db_url.startswith("postgres://"):
     _db_url = _db_url.replace("postgres://", "postgresql://", 1)
+    logger.info("Converted postgres:// URL to postgresql:// for SQLAlchemy")
+
+# Validate DATABASE_URL format
+if not _db_url.startswith(("postgresql://", "sqlite://")):
+    logger.error(f"❌ Invalid DATABASE_URL format: {_db_url[:20]}...")
+    logger.error("Expected format: postgresql://user:password@host:5432/database")
+    raise ValueError(f"Invalid DATABASE_URL format. Must start with 'postgresql://' or 'sqlite://'. Got: {_db_url[:20]}...")
 
 app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+logger.info(f"Database configured: {_db_url.split('@')[0] if '@' in _db_url else 'SQLite'}")
 
 # Log application startup (after config is set up)
 # Only log in the main process, not the reloader parent process
