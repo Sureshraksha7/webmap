@@ -484,7 +484,8 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const API_URL = 'https://structure-backend-d6a4.onrender.com';
+            // Use relative URL - automatically works on Vercel
+            const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5001' : window.location.origin;
             const token = localStorage.getItem('access_token');
 
             const companyNameEl = document.getElementById('company-node').querySelector('h1');

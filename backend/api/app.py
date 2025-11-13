@@ -8,17 +8,196 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, JWTManager, get_jwt
 from datetime import datetime, timezone, timedelta
 import re
+import logging
+from logging.handlers import RotatingFileHandler
+import sys
 
-app = Flask(__name__)
+# Configure Flask app with writable instance path for Vercel
+if os.environ.get('VERCEL'):
+    # On Vercel, use /tmp which is writable
+    app = Flask(__name__, instance_path='/tmp/flask_instance')
+else:
+    # Local development uses default instance path
+    app = Flask(__name__)
+
 CORS(app)
+
+# --- Logging Configuration ---
+# Create logs directory if it doesn't exist (skip on Vercel)
+log_dir = os.path.join(os.path.dirname(__file__), '..', 'logs')
+if not os.environ.get('VERCEL'):  # Don't create logs directory on Vercel
+    os.makedirs(log_dir, exist_ok=True)
+
+# Configure logging format
+log_format = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+# Set up root logger (only if not already configured)
+root_logger = logging.getLogger()
+if not root_logger.handlers:  # Prevent duplicate handlers on reload
+    root_logger.setLevel(logging.INFO)
+    
+    # Console handler (stdout)
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(log_format)
+    root_logger.addHandler(console_handler)
+    
+    # File handler only for local development (not on Vercel)
+    if not os.environ.get('VERCEL') and os.path.exists(log_dir):
+        log_file = os.path.join(log_dir, 'app.log')
+        file_handler = RotatingFileHandler(
+            log_file,
+            maxBytes=10*1024*1024,  # 10MB
+            backupCount=5
+        )
+        file_handler.setLevel(logging.INFO)
+        file_handler.setFormatter(log_format)
+        root_logger.addHandler(file_handler)
+        
+        # Error log file (separate file for errors)
+        error_log_file = os.path.join(log_dir, 'errors.log')
+        error_handler = RotatingFileHandler(
+            error_log_file,
+            maxBytes=10*1024*1024,  # 10MB
+            backupCount=5
+        )
+        error_handler.setLevel(logging.ERROR)
+        error_handler.setFormatter(log_format)
+        root_logger.addHandler(error_handler)
+
+# Get logger for this module
+logger = logging.getLogger(__name__)
+
+# Request logging middleware
+@app.before_request
+def log_request_info():
+    """Log incoming requests"""
+    logger.info(f"Request: {request.method} {request.path}")
+    logger.info(f"Remote Address: {request.remote_addr}")
+    if request.is_json:
+        # Log request body (be careful with sensitive data)
+        try:
+            body = request.get_json()
+            # Mask sensitive fields
+            safe_body = {k: '***' if k in ['password', 'old_password', 'new_password'] else v 
+                         for k, v in body.items()} if isinstance(body, dict) else body
+            logger.debug(f"Request Body: {json.dumps(safe_body, indent=2)}")
+        except:
+            pass
+    elif request.form:
+        logger.debug(f"Form Data: {dict(request.form)}")
+
+@app.after_request
+def log_response_info(response):
+    """Log outgoing responses"""
+    logger.info(f"Response: {response.status_code} for {request.method} {request.path}")
+    return response
+
+# Error logging
+from werkzeug.exceptions import NotFound, MethodNotAllowed, BadRequest, Unauthorized, Forbidden
+
+@app.errorhandler(404)
+def handle_not_found(e):
+    """Handle 404 Not Found errors"""
+    logger.warning(f"404 Not Found: {request.method} {request.path}")
+    return jsonify({"error": "Endpoint not found"}), 404
+
+@app.errorhandler(405)
+def handle_method_not_allowed(e):
+    """Handle 405 Method Not Allowed errors"""
+    logger.warning(f"405 Method Not Allowed: {request.method} {request.path}")
+    return jsonify({"error": "Method not allowed"}), 405
+
+@app.errorhandler(400)
+def handle_bad_request(e):
+    """Handle 400 Bad Request errors"""
+    logger.warning(f"400 Bad Request: {request.method} {request.path} - {str(e)}")
+    return jsonify({"error": str(e)}), 400
+
+@app.errorhandler(401)
+def handle_unauthorized(e):
+    """Handle 401 Unauthorized errors"""
+    logger.warning(f"401 Unauthorized: {request.method} {request.path}")
+    return jsonify({"error": "Unauthorized"}), 401
+
+@app.errorhandler(403)
+def handle_forbidden(e):
+    """Handle 403 Forbidden errors"""
+    logger.warning(f"403 Forbidden: {request.method} {request.path}")
+    return jsonify({"error": "Forbidden"}), 403
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Log all other exceptions"""
+    import traceback
+    error_trace = traceback.format_exc()
+    logger.error(f"Exception occurred: {str(e)}\n{error_trace}")
+    # Return more detailed error in development, generic in production
+    if os.environ.get('VERCEL') or os.environ.get('FLASK_ENV') != 'development':
+        return jsonify({"error": "An internal error occurred"}), 500
+    else:
+        return jsonify({"error": str(e), "traceback": error_trace}), 500
+
+# --- End of Logging Configuration ---
 # --- Database and Auth Configuration ---
 # Prefer managed DB via DATABASE_URL; fall back to local SQLite for dev
-_db_url = os.environ.get("DATABASE_URL", "sqlite:///users.db")
+
+# Get and clean DATABASE_URL
+_raw_db_url = os.environ.get("DATABASE_URL", "")
+logger.info(f"Raw DATABASE_URL received (first 30 chars): {repr(_raw_db_url[:30])}")
+
+# Strip whitespace and quotes (both single and double)
+_db_url = _raw_db_url.strip().strip('"').strip("'").strip()
+
+logger.info(f"After cleaning DATABASE_URL (first 30 chars): {repr(_db_url[:30])}")
+logger.info(f"DATABASE_URL length: {len(_db_url)}")
+logger.info(f"DATABASE_URL is empty: {not _db_url}")
+
+if not _db_url or _db_url in ('""', "''", ''):
+    if os.environ.get('VERCEL'):
+        # On Vercel, DATABASE_URL is required
+        logger.error("❌ DATABASE_URL environment variable is missing or empty on Vercel!")
+        logger.error(f"Raw value was: {repr(_raw_db_url[:50])}")
+        logger.error("Please set DATABASE_URL in Vercel Dashboard:")
+        logger.error("  1. Go to https://vercel.com → Your Project → Settings → Environment Variables")
+        logger.error("  2. Add DATABASE_URL with your PostgreSQL connection string")
+        logger.error("  3. Example: postgresql://user:password@host:5432/database")
+        logger.error("  4. IMPORTANT: Do NOT add quotes around the value!")
+        raise ValueError("DATABASE_URL environment variable is required on Vercel. Please set it in your Vercel project settings.")
+    else:
+        # Local development - use SQLite
+        _db_url = "sqlite:///users.db"
+        logger.info("Using local SQLite database for development")
+
+# Convert postgres:// to postgresql:// for SQLAlchemy compatibility
 if _db_url.startswith("postgres://"):
     _db_url = _db_url.replace("postgres://", "postgresql://", 1)
+    logger.info("Converted postgres:// URL to postgresql:// for SQLAlchemy")
+
+# Validate DATABASE_URL format
+if not _db_url.startswith(("postgresql://", "sqlite://")):
+    logger.error(f"❌ Invalid DATABASE_URL format!")
+    logger.error(f"Value (first 50 chars): {repr(_db_url[:50])}")
+    logger.error(f"Expected format: postgresql://user:password@host:5432/database")
+    raise ValueError(f"Invalid DATABASE_URL format. Must start with 'postgresql://' or 'sqlite://'. Got: {repr(_db_url[:50])}...")
 
 app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+logger.info(f"✅ Database configured successfully: {_db_url.split('@')[0] if '@' in _db_url else 'SQLite'}")
+
+# Log application startup (after config is set up)
+# Only log in the main process, not the reloader parent process
+# WERKZEUG_RUN_MAIN is set to 'true' in the child process that actually runs the app
+# If not using reloader (production), WERKZEUG_RUN_MAIN won't be set, so log anyway
+if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or os.environ.get('WERKZEUG_RUN_MAIN') is None:
+    logger.info("="*60)
+    logger.info("Flask application starting...")
+    logger.info(f"Log directory: {log_dir}")
+    logger.info(f"Database URL: {_db_url.split('@')[-1] if '@' in _db_url else 'sqlite (local)'}")
+    logger.info("="*60)
 
 # IMPORTANT: Change this to a random, secret string in production!
 app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'your-super-secret-key-change-this')
@@ -35,11 +214,9 @@ jwt = JWTManager(app)
 # --- Google API Config ---
 # Note: It's safer to load this from an environment variable
 # Prefer a stable model
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
-API_URL_GEMINI = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
-# When calling:
-headers = {"Content-Type": "application/json", "x-goog-api-key": GOOGLE_API_KEY}
-response = requests.post(API_URL_GEMINI, headers=headers, data=json.dumps(payload))
+API_URL_GEMINI = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GOOGLE_API_KEY}"
 # --- OpenAI API Config (NEW) ---
 # IMPORTANT: This key is now integrated
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
@@ -184,8 +361,10 @@ def generate_content_with_model(model_choice, company_name, category, num_pages,
 
 
     # --- 2. API Call Logic ---
+    logger.info(f"Calling {model_choice.upper()} API for company: {company_name}, category: {category}")
     if model_choice == 'openai':
         # --- OpenAI API Call Logic ---
+        logger.debug("Using OpenAI API")
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {OPENAI_API_KEY}"
@@ -204,16 +383,20 @@ def generate_content_with_model(model_choice, company_name, category, num_pages,
             "response_format": {"type": "json_object"}, 
             "temperature": 0.5
         }
+        logger.debug(f"OpenAI API request payload prepared")
         response = requests.post(API_URL_OPENAI, headers=headers, data=json.dumps(payload))
         
         if response.status_code != 200:
+            logger.error(f"OpenAI API Error ({response.status_code}): {response.text}")
             raise Exception(f"OpenAI API Error ({response.status_code}): {response.text}")
             
         result = response.json()
         json_text = result['choices'][0]['message']['content']
+        logger.info(f"OpenAI API call successful, response length: {len(json_text)} chars")
         
     else: # Default to gemini
         # --- Gemini API Call Logic ---
+        logger.debug("Using Gemini API")
         payload = { 
             "contents": [{"parts": [{"text": prompt}]}], 
             "generationConfig": { 
@@ -222,13 +405,16 @@ def generate_content_with_model(model_choice, company_name, category, num_pages,
             } 
         }
         headers = {"Content-Type": "application/json"}
+        logger.debug(f"Gemini API request payload prepared")
         response = requests.post(API_URL_GEMINI, headers=headers, data=json.dumps(payload))
 
         if response.status_code != 200:
+            logger.error(f"Gemini API Error ({response.status_code}): {response.text}")
             raise Exception(f"Gemini API Error ({response.status_code}): {response.text}")
 
         result = response.json()
         json_text = result['candidates'][0]['content']['parts'][0]['text']
+        logger.info(f"Gemini API call successful, response length: {len(json_text)} chars")
     
     return json_text
 # --- End of Generator Utility Function ---
@@ -249,6 +435,8 @@ def generate_structure():
         num_pages = data.get('num_pages', 5)
         description = data.get('description', '') 
         model_choice = data.get('model', 'gemini')
+        
+        logger.info(f"User {current_user_id} generating structure for {company_name} ({category}), {num_pages} pages, model: {model_choice}")
 
         # Call the unified generation function for initial generation
         raw_json_text = generate_content_with_model(
@@ -279,12 +467,15 @@ def generate_structure():
         )
         db.session.add(new_structure)
         db.session.commit()
+        
+        logger.info(f"Structure created successfully: ID {new_structure.id} for user {current_user_id}")
 
         # Return the newly created structure
         return jsonify(new_structure.to_dict()), 201 
 
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Error generating structure for user {current_user_id}: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
 # --- NEW: Refine Structure Route for Chatbot ---
@@ -413,12 +604,16 @@ def register():
     # --- NEW: Get phone ---
     phone = data.get('phone') 
     
+    logger.info(f"Registration attempt for email: {email}")
+    
     if not email or not password or not name:
+        logger.warning(f"Registration failed: Missing required fields for {email}")
         return jsonify({"error": "Name, email, and password are required"}), 400
     
     existing_user = User.query.filter_by(email=email).first()
     
     if existing_user:
+        logger.warning(f"Registration failed: Email {email} already exists")
         return jsonify({"error": "Email already registered"}), 400
     
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
@@ -428,9 +623,11 @@ def register():
     try:
         db.session.add(new_user)
         db.session.commit()
+        logger.info(f"User registered successfully: {email} (ID: {new_user.id})")
         return jsonify({"message": f"User {email} registered successfully"}), 201
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Registration error for {email}: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
 @app.route('/login', methods=['POST'])
@@ -439,15 +636,20 @@ def login():
     email = data.get('email')
     password = data.get('password')
     
+    logger.info(f"Login attempt for email: {email}")
+    
     if not email or not password:
+        logger.warning(f"Login failed: Missing credentials for {email}")
         return jsonify({"error": "Email and password are required"}), 400
     
     user = User.query.filter_by(email=email).first()
     
     if user and bcrypt.check_password_hash(user.password_hash, password):
-        access_token = create_access_token(identity=str(user.id)) 
+        access_token = create_access_token(identity=str(user.id))
+        logger.info(f"User logged in successfully: {email} (ID: {user.id})")
         return jsonify(access_token=access_token), 200
     else:
+        logger.warning(f"Login failed: Invalid credentials for {email}")
         return jsonify({"error": "Invalid credentials"}), 401
 
 @app.route('/profile', methods=['GET', 'PUT'])
@@ -537,8 +739,14 @@ def logout():
         return jsonify({"error": str(e)}), 500
 
 
-if __name__ == '__main__':
-    # Creates the database tables if they don't exist
-    with app.app_context():
+# Create database tables (works both locally and on Vercel)
+with app.app_context():
+    try:
         db.create_all()
-    app.run(debug=True)
+        logger.info("Database tables created/verified successfully")
+    except Exception as e:
+        logger.error(f"Error creating database tables: {str(e)}")
+
+if __name__ == '__main__':
+    # Use port 5001 to avoid conflict with macOS AirPlay Receiver on port 5000
+    app.run(debug=True, host='0.0.0.0', port=5001)
