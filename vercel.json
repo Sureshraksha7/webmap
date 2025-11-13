@@ -1,38 +1,49 @@
 {
   "version": 2,
-  "outputDirectory": "frontend",
   "routes": [
     {
       "src": "/login",
-      "dest": "/api/app.py"
+      "dest": "api/app.py"
     },
     {
       "src": "/register",
-      "dest": "/api/app.py"
+      "dest": "api/app.py"
     },
     {
       "src": "/logout",
-      "dest": "/api/app.py"
+      "dest": "api/app.py"
     },
     {
       "src": "/profile",
-      "dest": "/api/app.py"
+      "dest": "api/app.py"
     },
     {
       "src": "/change-password",
-      "dest": "/api/app.py"
+      "dest": "api/app.py"
     },
     {
       "src": "/generate",
-      "dest": "/api/app.py"
+      "dest": "api/app.py"
     },
     {
       "src": "/structures/(.*)",
-      "dest": "/api/app.py"
+      "dest": "api/app.py"
     },
     {
       "src": "/structures",
-      "dest": "/api/app.py"
+      "dest": "api/app.py"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "frontend/assets/$1"
+    },
+    {
+      "src": "/(.*\\.(html|css|js|png|jpg|jpeg|gif|svg|ico|webp))",
+      "dest": "frontend/$1"
+    },
+    {
+      "src": "/",
+      "dest": "frontend/index.html"
     }
   ]
 }
