@@ -3,13 +3,22 @@
   "functions": {
     "backend/api/app.py": {
       "runtime": "python3.12",
-      "maxDuration": 10,
+      "maxDuration": 30,
       "memory": 1024
     }
   },
   "routes": [
-    { "src": "/(login|register|logout|profile|change-password|generate|structures.*)", "dest": "/backend/api/app.py" },
-    { "src": "/", "dest": "/frontend/index.html" },
-    { "src": "/(.*)", "dest": "/frontend/$1" }
+    {
+      "src": "/(login|register|logout|profile|change-password|generate|structures.*)",
+      "dest": "backend/api/app.py"
+    },
+    {
+      "src": "/",
+      "dest": "frontend/index.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend/$1"
+    }
   ]
 }
