@@ -8,6 +8,8 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, JWTManager, get_jwt
 from datetime import datetime, timezone, timedelta
 import re
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
@@ -34,12 +36,12 @@ jwt = JWTManager(app)
 
 # --- Google API Config ---
 # Note: It's safer to load this from an environment variable
-# Prefer a stable model
+# --- Google API Config ---
+# Load API key from environment and use a stable model
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
 API_URL_GEMINI = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
-# When calling:
-headers = {"Content-Type": "application/json", "x-goog-api-key": GOOGLE_API_KEY}
-response = requests.post(API_URL_GEMINI, headers=headers, data=json.dumps(payload))
+
 # --- OpenAI API Config (NEW) ---
 # IMPORTANT: This key is now integrated
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
