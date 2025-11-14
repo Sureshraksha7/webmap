@@ -222,10 +222,10 @@ GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
 # Normalize requested Gemini model names to known-good v1 identifiers
 _requested_gemini_model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash").strip()
 _gemini_model_aliases = {
-    "gemini-2.5-flash": "gemini-2.0-flash",      # compatibility mapping
+    "gemini-2.5-flash": "gemini-2.0-flash",       # compatibility mapping
     "gemini 2.5 flash": "gemini-2.0-flash",
     "gemini-2.5-flash-exp": "gemini-2.0-flash",
-    "gemini-1.5-flash": "gemini-1.5-flash",      # still valid on v1
+    "gemini-1.5-flash": "gemini-1.5-flash",       # still valid on v1
     "gemini-1.5-pro": "gemini-1.5-pro",
     "gemini-2.0-flash": "gemini-2.0-flash",
     "gemini-2.0-pro": "gemini-2.0-pro",
@@ -478,11 +478,38 @@ def generate_structure():
         else:
             cleaned_json_text = raw_json_text.strip()
             
+        # -----------------------------------------------------------
+        # >>> NEW JSON VALIDATION AND RE-DUMP LOGIC START <<<
+        # -----------------------------------------------------------
+        try:
+            # 1. Attempt to parse the cleaned string into a Python object
+            validated_json = json.loads(cleaned_json_text)
+
+            # 2. If parsing succeeds, re-dump the object back into a string.
+            #    This guarantees the output is perfectly formatted, legal JSON.
+            cleaned_json_text = json.dumps(validated_json)
+            
+            logger.info("Successfully validated and re-dumped AI generated JSON.")
+
+        except json.JSONDecodeError as e:
+            # 3. If parsing fails, log the error and stop the process,
+            #    informing the user that the structure was too complex.
+            logger.error(f"FATAL JSON DECODE ERROR: {e}. Raw text starts with: {cleaned_json_text[:500]}")
+            db.session.rollback()
+            
+            # Return a specific error message encouraging the user to try fewer pages
+            return jsonify({
+                "error": "The AI model returned severely malformed data. Try generating 5-7 pages and expanding with the chat refinement feature."
+            }), 422 # 422 Unprocessable Entity
+        # -----------------------------------------------------------
+        # >>> NEW JSON VALIDATION AND RE-DUMP LOGIC END <<<
+        # -----------------------------------------------------------
+        
         # --- Save to Database ---
         new_structure = Structure(
             company_name=company_name,
             category=category,
-            json_data=cleaned_json_text, # Save the CLEANED JSON string
+            json_data=cleaned_json_text, # Save the now guaranteed-clean JSON string
             user_id=current_user_id, # Use the integer ID
             model_used=model_choice  # Save the model used
         )
@@ -772,4 +799,3 @@ if __name__ == '__main__':
     # Use port 5001 to avoid conflict with macOS AirPlay Receiver on port 5000
 
     app.run(debug=True, host='0.0.0.0', port=5001)
-
