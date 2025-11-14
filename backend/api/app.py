@@ -220,17 +220,29 @@ jwt = JWTManager(app)
 # Prefer a stable model
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
 # Normalize requested Gemini model names to known-good v1 identifiers
+# --- Google API Config ---
+# ... (lines above)
+
+# Normalize requested Gemini model names to known-good v1 identifiers
 _requested_gemini_model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash").strip()
 _gemini_model_aliases = {
     "gemini-2.5-flash": "gemini-2.0-flash",       # compatibility mapping
     "gemini 2.5 flash": "gemini-2.0-flash",
     "gemini-2.5-flash-exp": "gemini-2.0-flash",
-    "gemini-1.5-flash": "gemini-1.5-flash",       # still valid on v1
+    "gemini-1.5-flash": "gemini-1.5-flash",
     "gemini-1.5-pro": "gemini-1.5-pro",
     "gemini-2.0-flash": "gemini-2.0-flash",
     "gemini-2.0-pro": "gemini-2.0-pro",
+    
+    # <<< ADD THIS LINE >>>
+    "gemini-2.5-pro": "gemini-2.5-pro", 
+    # <<< END ADDITION >>>
+
 }
 GEMINI_MODEL = _gemini_model_aliases.get(_requested_gemini_model.lower(), _requested_gemini_model)
+# ... (lines below)
+
+
 # Use the v1 endpoint which supports current Gemini models
 API_URL_GEMINI = f"https://generativelanguage.googleapis.com/v1/models/{GEMINI_MODEL}:generateContent?key={GOOGLE_API_KEY}"
 # --- OpenAI API Config (NEW) ---
@@ -799,3 +811,4 @@ if __name__ == '__main__':
     # Use port 5001 to avoid conflict with macOS AirPlay Receiver on port 5000
 
     app.run(debug=True, host='0.0.0.0', port=5001)
+
