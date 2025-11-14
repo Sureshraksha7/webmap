@@ -1,0 +1,53 @@
+name: CI/CD to Vercel
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # ---------- Backend (Flask) CI ----------
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ secrets.PYTHON_VERSION }}
+
+      - name: Install Backend Dependencies
+        run: |
+          if [ -f backend/requirements.txt ]; then
+            pip install -r backend/requirements.txt
+          fi
+
+      - name: Run Backend Linting (optional)
+        run: |
+          pip install flake8
+          flake8 backend || true
+
+      # ---------- Frontend Build (Optional if static) ----------
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      # ---------- Deploy to Vercel ----------
+      - name: Deploy to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          vercel --prod --yes \
+          --token $VERCEL_TOKEN \
+          --org $VERCEL_ORG_ID \
+          --project $VERCEL_PROJECT_ID
