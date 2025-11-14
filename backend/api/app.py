@@ -222,9 +222,9 @@ GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
 # Normalize requested Gemini model names to known-good v1 identifiers
 _requested_gemini_model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash").strip()
 _gemini_model_aliases = {
-    "gemini-2.5-flash": "gemini-2.0-flash",      # compatibility mapping
-    "gemini 2.5 flash": "gemini-2.0-flash",
-    "gemini-2.5-flash-exp": "gemini-2.0-flash",
+    "gemini-2.5-flash": "gemini-2.5-flash",      # compatibility mapping
+    "gemini 2.5 flash": "gemini-2.5-flash",
+    "gemini-2.5-flash-exp": "gemini-2.5-flash",
     "gemini-1.5-flash": "gemini-1.5-flash",      # still valid on v1
     "gemini-1.5-pro": "gemini-1.5-pro",
     "gemini-2.0-flash": "gemini-2.0-flash",
@@ -770,4 +770,5 @@ with app.app_context():
 
 if __name__ == '__main__':
     # Use port 5001 to avoid conflict with macOS AirPlay Receiver on port 5000
+
     app.run(debug=True, host='0.0.0.0', port=5001)
